@@ -39,6 +39,17 @@ public class SparseArray {
         }
 
         System.out.println(Arrays.deepToString(sparse));
+
+        int row = sparse[0][0];
+        int column = sparse[0][1];
+        int count = sparse[0][2];
+        int[][] arrayRecover = new int[row][column];
+
+        for (int i = 1; i < sparse.length; i++) {
+            arrayRecover[sparse[i][0]][sparse[i][1]] = sparse[i][2];
+        }
+
+        System.out.println(Arrays.deepToString(arrayRecover));
     }
 
 
