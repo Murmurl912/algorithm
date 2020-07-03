@@ -6,7 +6,8 @@ public class Array<T> implements List<T>, RandomAccess {
     protected Object[] elements;
     protected int elementCount = 0;
     private int initialCapacity = 10;
-    private int capacityIncrement = 10;
+    private int capacityIncrement = 10; // capacity can be negative
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 10;
 
 /*
 ==============================================================================================
@@ -182,7 +183,6 @@ public class Array<T> implements List<T>, RandomAccess {
         return old;
     }
 
-    //todo: implement below methods
     /**
      * insert element at given index, previously element at index
      * will be shifted forwards.
@@ -197,12 +197,16 @@ public class Array<T> implements List<T>, RandomAccess {
         }
 
         // ensure capacity
-
+        if(elements.length == elementCount) {
+            grow(elements.length + 1);
+        }
         // shift array
+        System.arraycopy(elements, index, elements, index + 1, elementCount + 1);
 
         // insert element
-
+        elements[index] = element;
         // increase element count
+        elementCount++;
     }
 
     /**
@@ -210,43 +214,172 @@ public class Array<T> implements List<T>, RandomAccess {
      * @param index index of element to be remove
      * @return removed element at given index
      */
+    @SuppressWarnings("unchecked")
     @Override
-    public T remove(int index) {
-        return null;
+    public synchronized T remove(int index) {
+        ensureIndexInBounds(index);
+        T old = (T)elements[index];
+        // return last element
+        if(index == elementCount - 1) {
+            elements[index] = null;
+            return old;
+        }
+        // [0, ..., a, index, b, ..., count - 1] => [0, ..., a, b, ..., count - 2, count - 1]
+        System.arraycopy(elements, index + 1, elements, index, elementCount - index);
+        // gc elements[elementCount]
+        elements[elementCount] = null;
+        // decrease element count
+        elementCount--;
+        return old;
     }
 
+    /**
+     * add element at end of array
+     * @param t element to be add
+     * @return always true
+     */
     @Override
-    public boolean add(T t) {
-        return false;
+    public synchronized boolean add(T t) {
+        if(elementCount == elements.length) {
+            grow(1);
+        }
+        elements[elementCount] = t;
+        elementCount++;
+        return true;
     }
 
+    /**
+     * remove the first occurrence of the specified element
+     * @param o element to be removed
+     * @return return true if element exist in array
+     */
     @Override
-    public boolean remove(Object o) {
-        return false;
+    public synchronized boolean remove(Object o) {
+        int index = indexOf(o);
+        if(index < 0) {
+            return false;
+        }
+        remove(index);
+        return true;
     }
 
-
+    /**
+     * add every element in collection to this array
+     * @param c collection that stores the elements to be add
+     * @return false if collection is empty
+     */
     @Override
     public boolean addAll(Collection<? extends T> c) {
-        return false;
+        int size = c.size();
+        if(size == 0) {
+            return false;
+        }
+        if(elementCount + size > elements.length) {
+            grow(size);
+        }
+        Object[] array = c.toArray();
+        // add to elements
+        System.arraycopy(array, 0, elements, elementCount, size);
+        // increase element count
+        elementCount += size;
+        return true;
     }
 
+    /**
+     * insert every element in collection into array
+     * the first element is inserted in index, the second is inserted in index + 1 etc.
+     * at at give start position
+     * @param index where to start insert
+     * @param c elements to insert
+     * @return false if collection is emptu
+     */
     @Override
     public boolean addAll(int index, Collection<? extends T> c) {
-        return false;
+        if(index < 0 || index > elementCount) {
+            throw new IndexOutOfBoundsException(index);
+        }
+
+        int size = c.size();
+        if(size == 0) {
+            return false;
+        }
+
+        if(elementCount + size > elements.length) {
+            grow(size);
+        }
+
+        Object[] array = c.toArray();
+        // append at end of array
+        if(index == elementCount) {
+            System.arraycopy(array, 0, elements, elementCount, size);
+            elementCount += size;
+            return true;
+        }
+        // shift element forwards
+        System.arraycopy(elements, index, elements, index + size, elementCount - index);
+        // add to elements
+        System.arraycopy(array, 0, elements, index, size);
+        elementCount += size;
+        return true;
     }
 
+    /**
+     * todo rewrite
+     * remove every single element in c from array
+     * @param c elements to be remove
+     * @return true if array change as result of this call
+     */
     @Override
     public boolean removeAll(Collection<?> c) {
-        return false;
+        if(c.isEmpty()) {
+            return false;
+        }
+        boolean flag = false;
+        for (Object o : c) {
+            while (remove(o)) {
+                flag = true;
+            }
+        }
+        return flag;
     }
 
+    /**
+     * todo rewrite
+     * remove every element not in given collection
+     * @param c element to retain
+     * @return true if array change as result of this call
+     */
     @Override
     public boolean retainAll(Collection<?> c) {
-        return false;
+        if(c.isEmpty()) {
+            return false;
+        }
+
+        boolean flag = false;
+        for(int i = 0; i < elementCount; i++) {
+            Object element = elements[i];
+            if(!c.contains(element)) {
+                flag = true;
+                if(i != elementCount - 1) {
+                    System.arraycopy(elements, i + 1, elements, i, elementCount - i);
+                }
+                // gc
+                elements[elementCount - 1] = null;
+                elementCount--;
+            }
+        }
+
+        return flag;
     }
 
 
+/*
+===============================================================================================
+                            Iterator
+===============================================================================================
+ */
+
+    // todo implement iterator
 
     @Override
     public ListIterator<T> listIterator() {
@@ -271,18 +404,87 @@ public class Array<T> implements List<T>, RandomAccess {
 
     @Override
     public Object[] toArray() {
-        return new Object[0];
+        return Arrays.copyOf(elements, elementCount);
     }
 
+    /**
+     * copy to an array
+     * @param a where to store the copied array
+     * @param <E> type of element
+     * @return copied array stored in a if given array has enough size
+     */
     @Override
-    public <T1> T1[] toArray(T1[] a) {
-        return null;
+    @SuppressWarnings("unchecked")
+    public synchronized <E> E[] toArray(E[] a) {
+        if (a.length < elementCount)
+            return (E[]) Arrays.copyOf(elements, elementCount, a.getClass());
+
+        System.arraycopy(elements, 0, a, 0, elementCount);
+
+        if (a.length > elementCount)
+            a[elementCount] = null;
+
+        return a;
     }
 
+/*
+===============================================================================================
+                            private method
+===============================================================================================
+ */
 
     private void ensureIndexInBounds(int index) {
         if(index < 0 || index > elementCount - 1) {
             throw new IndexOutOfBoundsException(index);
         }
     }
+
+    /**
+     * This method is adopted from ArrayList.java
+     * Returns a capacity at least as large as the given minimum capacity.
+     * Returns the current capacity increased by 50% if that suffices.
+     * Will not return a capacity greater than MAX_ARRAY_SIZE unless
+     * the given minimum capacity is greater than MAX_ARRAY_SIZE.
+     *
+     * @param minCapacity the desired minimum capacity
+     * @throws OutOfMemoryError if minCapacity is less than zero
+     */
+    private int newCapacity(int minCapacity) {
+        // overflow-conscious code
+        int oldCapacity = elements.length;
+        // increase size by 1.5 times
+        int newCapacity = oldCapacity + (oldCapacity >> 1);
+        // this line is equal to newCapacity <= minCapacity
+        // when new capacity is less than min capacity
+        // grow as much as min capacity
+        if (newCapacity - minCapacity <= 0) {
+            if (minCapacity < 0) // overflow
+                throw new OutOfMemoryError();
+            return minCapacity;
+        }
+
+        // when new capacity is lager than max size
+        // reduce capacity to min capacity
+        // otherwise gow as little as new capcity
+        return (newCapacity - MAX_ARRAY_SIZE <= 0)
+                ? newCapacity
+                : hugeCapacity(minCapacity);
+    }
+
+    /*
+     * This method is adopted from ArrayList.java
+     */
+    private static int hugeCapacity(int minCapacity) {
+        if (minCapacity < 0) // overflow
+            throw new OutOfMemoryError();
+        return (minCapacity > MAX_ARRAY_SIZE)
+                ? Integer.MAX_VALUE
+                : MAX_ARRAY_SIZE;
+    }
+
+
+    public synchronized void grow(int size) {
+        elements = Arrays.copyOf(elements, newCapacity(elements.length + size));
+    }
+
 }
