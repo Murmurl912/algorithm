@@ -1,12 +1,16 @@
 package datastructure.linear.sequential;
 
 import java.util.*;
+import java.util.function.Consumer;
 
+/**
+ * This is a bad choice to implement List
+ * @param <T>
+ */
 public class Array<T> implements List<T>, RandomAccess {
     protected Object[] elements;
     protected int elementCount = 0;
     private int initialCapacity = 10;
-    private int capacityIncrement = 10; // capacity can be negative
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 10;
 
 /*
@@ -201,7 +205,7 @@ public class Array<T> implements List<T>, RandomAccess {
             grow(elements.length + 1);
         }
         // shift array
-        System.arraycopy(elements, index, elements, index + 1, elementCount + 1);
+        System.arraycopy(elements, index, elements, index + 1, elementCount - index);
 
         // insert element
         elements[index] = element;
@@ -222,6 +226,7 @@ public class Array<T> implements List<T>, RandomAccess {
         // return last element
         if(index == elementCount - 1) {
             elements[index] = null;
+            elementCount--;
             return old;
         }
         // [0, ..., a, index, b, ..., count - 1] => [0, ..., a, b, ..., count - 2, count - 1]
@@ -382,24 +387,25 @@ public class Array<T> implements List<T>, RandomAccess {
     // todo implement iterator
 
     @Override
-    public ListIterator<T> listIterator() {
-        return null;
+    public synchronized ListIterator<T> listIterator() {
+        return new ListArrayIterator();
     }
 
     @Override
-    public ListIterator<T> listIterator(int index) {
-        return null;
+    public synchronized ListIterator<T> listIterator(int index) {
+        ensureIndexInBounds(index);
+        return new ListArrayIterator(index);
     }
 
     @Override
-    public List<T> subList(int fromIndex, int toIndex) {
-        return null;
+    public synchronized List<T> subList(int fromIndex, int toIndex) {
+        throw new UnsupportedOperationException("This implementation does not supported sublist");
     }
 
 
     @Override
-    public Iterator<T> iterator() {
-        return null;
+    public synchronized Iterator<T> iterator() {
+        return new ArrayIterator();
     }
 
     @Override
@@ -487,4 +493,269 @@ public class Array<T> implements List<T>, RandomAccess {
         elements = Arrays.copyOf(elements, newCapacity(elements.length + size));
     }
 
+/*
+===============================================================================================
+                            private class
+===============================================================================================
+ */
+
+    /**
+     * This class does not provide ConcurrentModificationException check
+     */
+    private class ArrayIterator implements Iterator<T> {
+
+        private int cursor = 0;
+
+        @Override
+        public boolean hasNext() {
+            synchronized (Array.this) {
+                return cursor < elementCount;
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public T next() {
+            synchronized (Array.this) {
+                if(cursor < elementCount) {
+                    return (T) elements[cursor++];
+                }
+                return null;
+            }
+        }
+
+        @Override
+        public void remove() {
+            synchronized (Array.this) {
+                if(cursor < elementCount) {
+                    Array.this.remove(cursor - 1);
+                }
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void forEachRemaining(Consumer<? super T> action) {
+            synchronized (Array.this) {
+                int i;
+                for(i = cursor; cursor < elementCount; i++) {
+                    action.accept((T)elements[i]);
+                }
+                cursor = i;
+            }
+        }
+    }
+
+    private class ListArrayIterator implements ListIterator<T> {
+        private int cursor = 0;
+
+        public ListArrayIterator() {
+
+        }
+
+        public ListArrayIterator(int index) {
+            this.cursor = index;
+        }
+
+        @Override
+        public boolean hasNext() {
+            synchronized (Array.this) {
+                return cursor < elementCount;
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public T next() {
+            synchronized (Array.this) {
+                if(cursor < elementCount) {
+                    return (T)elements[cursor];
+                } else {
+                    return null;
+                }
+            }
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            synchronized (Array.this) {
+                return cursor > 0;
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public T previous() {
+            synchronized (Array.this) {
+                int index = cursor - 1;
+                if(index > 0) {
+                    cursor = index;
+                    return (T)elements[index];
+                } else {
+                    return null;
+                }
+            }
+        }
+
+        @Override
+        public int nextIndex() {
+            synchronized (Array.this) {
+                return cursor;
+            }
+        }
+
+        @Override
+        public int previousIndex() {
+            synchronized (Array.this) {
+                return cursor - 1;
+            }
+        }
+
+        @Override
+        public void remove() {
+            synchronized (Array.this) {
+                if(cursor < elementCount) {
+                    Array.this.remove(cursor - 1);
+                }
+            }
+        }
+
+        @Override
+        public void set(T t) {
+            synchronized (Array.this) {
+                if(cursor < elementCount && cursor > -1) {
+                    elements[cursor] = t;
+                }
+            }
+        }
+
+        @Override
+        public void add(T t) {
+            synchronized (Array.this) {
+                Array.this.add(cursor, t);
+                cursor++;
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void forEachRemaining(Consumer<? super T> action) {
+            synchronized (Array.this) {
+                int i;
+                for(i = cursor; cursor < elementCount; i++) {
+                    action.accept((T)elements[i]);
+                }
+                cursor = i;
+            }
+        }
+    }
+
+    private static class ArrayTest {
+        public static void main(String[] args) {
+            testAdd(0, 2000);
+            testAddAll(0, 100, 2000);
+            testRemove(2000, 1000);
+        }
+
+
+        public static void testAdd(int arrayInitialSize, int times) {
+            Array<Integer> array = new Array<>();
+            Random random = new Random();
+            random.setSeed(0);
+            for (int i = 0; i < arrayInitialSize; i++) {
+                int number = random.nextInt();
+                array.add(number);
+            }
+            random.setSeed(0);
+            for(int i = 0; i < times; i++) {
+                int index = Math.abs(random.nextInt(array.size() + 1));
+                int number = random.nextInt();
+                int[] arrayCorrect = new int[array.size() + 1];
+                for (int j = 0; j < index; j++) {
+                    arrayCorrect[j] = array.get(j);
+                }
+                arrayCorrect[index] = number;
+                for (int j = index; j < array.size(); j++) {
+                    arrayCorrect[j + 1] = array.get(j);
+                }
+
+                array.add(index, number);
+                for (int j = 0; j < array.size(); j++) {
+                    if(array.get(j) != arrayCorrect[j]) {
+                        System.out.println("Test failed");
+                        return;
+                    }
+                }
+            }
+            System.out.println("Test success");
+        }
+
+        public static void testAddAll(int arrayInitialSize, int maxSize, int times) {
+            Array<Integer> array = new Array<>();
+            Random random = new Random();
+            random.setSeed(0);
+            for (int i = 0; i < arrayInitialSize; i++) {
+                int number = random.nextInt();
+                array.add(number);
+            }
+            random.setSeed(0);
+            for(int i = 0; i < times; i++) {
+                int index = Math.abs(random.nextInt(array.size() + 1));
+                int size = Math.abs(random.nextInt(maxSize));
+                int[] arrayCorrect = new int[array.size() + size];
+                for (int j = 0; j < index; j++) {
+                    arrayCorrect[j] = array.get(j);
+                }
+                List<Integer> testCollection = new ArrayList<>();
+                for(int j = index; j < index + size; j++) {
+                    arrayCorrect[j] = random.nextInt();
+                    testCollection.add(arrayCorrect[j]);
+                }
+                for (int j = index; j < array.size(); j++) {
+                    arrayCorrect[j + size] = array.get(j);
+                }
+                array.addAll(index, testCollection);
+                for (int j = 0; j < array.size(); j++) {
+                    if(array.get(j) != arrayCorrect[j]) {
+                        System.out.println("Test failed");
+                        return;
+                    }
+                }
+            }
+            System.out.println("Test success");
+        }
+
+        public static void testRemove(int arrayInitialSize, int times) {
+            Array<Integer> array = new Array<>();
+            Random random = new Random();
+            random.setSeed(0);
+            for (int i = 0; i < arrayInitialSize; i++) {
+                int number = random.nextInt();
+                array.add(number);
+            }
+            random.setSeed(0);
+            for(int i = 0; i < times; i++) {
+                int index = Math.abs(random.nextInt(array.size()));
+                int[] arrayCorrect = new int[array.size() - 1];
+                for (int j = 0; j < index; j++) {
+                    arrayCorrect[j] = array.get(j);
+                }
+                for(int j = index; j < arrayCorrect.length; j++) {
+                    arrayCorrect[j] = array.get(j + 1);
+                }
+                array.remove(index);
+                for (int j = 0; j < array.size(); j++) {
+                    if(array.get(j) != arrayCorrect[j]) {
+                        System.out.println("Test failed");
+                        return;
+                    }
+                }
+            }
+            System.out.println("Test success");
+        }
+
+        public void testContain(int arrayInitialSize, int times) {
+
+        }
+    }
 }
