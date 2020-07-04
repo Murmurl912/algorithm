@@ -9,8 +9,12 @@ import java.util.Stack;
 public class SequentialStack<E> implements BasicStack<E> {
 
     protected Object[] elements;
-    protected int size;
+    protected int size = 0;
     public static final int MAX_STACK_SIZE = Integer.MAX_VALUE - 10;
+
+    public SequentialStack() {
+        elements = new Object[10];
+    }
 
     @Override
     public int size() {

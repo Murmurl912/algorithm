@@ -7,8 +7,12 @@ import java.util.function.Consumer;
 
 public class SequentialArray<E> implements BasicArray<E> {
     protected Object[] elements;
-    protected int size;
+    protected int size = 0;
     public static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 10;
+
+    public SequentialArray() {
+        elements = new Object[10];
+    }
 
     @Override
     public int size() {

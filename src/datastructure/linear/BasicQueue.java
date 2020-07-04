@@ -11,4 +11,9 @@ public interface BasicQueue<E> extends Iterable<E> {
     public void offer(E element);
 
     public E peek();
+
+    public boolean empty();
+
+    public boolean full();
+
 }
