@@ -4,7 +4,7 @@ public interface BasicArray<E> extends Iterable<E> {
 
     public int size();
 
-    public int add(int index, E element);
+    public void add(int index, E element);
 
     public E get(int index);
 

@@ -7,6 +7,7 @@ import java.util.function.Consumer;
  * This is a bad choice to implement List
  * @param <T>
  */
+@Deprecated
 public class Array<T> implements List<T>, RandomAccess {
     protected Object[] elements;
     protected int elementCount = 0;
@@ -169,6 +170,7 @@ public class Array<T> implements List<T>, RandomAccess {
         for (int i = 0; i < elementCount; i++) {
             elements[i] = null;
         }
+        elementCount = 0;
     }
 
     /**
@@ -230,7 +232,7 @@ public class Array<T> implements List<T>, RandomAccess {
             return old;
         }
         // [0, ..., a, index, b, ..., count - 1] => [0, ..., a, b, ..., count - 2, count - 1]
-        System.arraycopy(elements, index + 1, elements, index, elementCount - index);
+        System.arraycopy(elements, index + 1, elements, index, elementCount - index - 1);
         // gc elements[elementCount]
         elements[elementCount] = null;
         // decrease element count
