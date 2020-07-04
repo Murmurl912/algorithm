@@ -1,16 +1,18 @@
 package datastructure.linear.sequential;
 
-import datastructure.linear.BasicStack;
+import datastructure.linear.BasicQueue;
 
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Stack;
 
-public class SequentialStack<E> implements BasicStack<E> {
+public class SequentialQueue<E> implements BasicQueue<E> {
 
     protected Object[] elements;
     protected int size;
-    public static final int MAX_STACK_SIZE = Integer.MAX_VALUE - 10;
+    public static final int MAX_QUEUE_SIZE = Integer.MAX_VALUE - 10;
+    private transient volatile int front;
+    private transient volatile int rear;
 
     @Override
     public int size() {
@@ -19,46 +21,32 @@ public class SequentialStack<E> implements BasicStack<E> {
 
     @Override
     public void clear() {
-        while (--size > -1) {
+        while (--size > 0) {
             elements[size] = null;
         }
     }
 
     @Override
-    public void push(E element) {
+    public E take() {
+        return null;
+    }
+
+    @Override
+    public void offer(E element) {
         if(size == elements.length) {
             grow(size + 1);
         }
-        elements[size] = element;
+
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public E pop() {
-        if(size > 0) {
-            return (E)elements[--size];
-        }
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
     @Override
     public E peek() {
-        if(size > 0) {
-            return (E) elements[size - 1];
-        }
         return null;
     }
 
-    /**
-     * return an iterator that iterates elements from bottom to top
-     * of the stack
-     * if there is no element left in stack, iterator#next return null
-     * @return iterator iterate element in this stack form bottom to top
-     */
     @Override
     public Iterator<E> iterator() {
-        return new StackIterator();
+        return null;
     }
 
     private void grow(int miniCapacity) {
@@ -77,10 +65,10 @@ public class SequentialStack<E> implements BasicStack<E> {
             capacity = miniCapacity;
         } else {
             // desire capacity larger than maximum array size
-            if(desireCapacity > MAX_STACK_SIZE) {
+            if(desireCapacity > MAX_QUEUE_SIZE) {
                 // mini capacity larger than maximum array size
                 // but mini capacity can never larger than Integer.MAX_VALUE
-                if(miniCapacity > MAX_STACK_SIZE) {
+                if(miniCapacity > MAX_QUEUE_SIZE) {
                     // use Integer.MAX_VALUE as desire capacity
                     capacity = Integer.MAX_VALUE;
                 } else {
@@ -94,21 +82,4 @@ public class SequentialStack<E> implements BasicStack<E> {
         elements = Arrays.copyOf(original, capacity);
     }
 
-    private class StackIterator implements Iterator<E> {
-        private int cursor = 0;
-        @Override
-        public boolean hasNext() {
-            return cursor > -1 && cursor < size;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public E next() {
-            if(cursor > -1 && cursor < size) {
-                return (E)elements[cursor++];
-            }
-            return null;
-        }
-
-    }
 }
