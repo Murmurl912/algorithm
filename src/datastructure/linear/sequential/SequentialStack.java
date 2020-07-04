@@ -1,4 +1,4 @@
 package datastructure.linear.sequential;
 
-public class Stack {
+public class SequentialStack {
 }

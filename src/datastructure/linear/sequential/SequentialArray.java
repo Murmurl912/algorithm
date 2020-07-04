@@ -2,10 +2,7 @@ package datastructure.linear.sequential;
 
 import datastructure.linear.BasicArray;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class SequentialArray<E> implements BasicArray<E> {
@@ -112,24 +109,29 @@ public class SequentialArray<E> implements BasicArray<E> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void set(int index, E element) {
+    public E set(int index, E element) {
+        ensureInBounds(index);
+        E old = (E)elements[index];
+        elements[index] = element;
+        return old;
 
     }
 
     @Override
     public Iterator<E> iterator() {
-        return null;
-    }
-
-    @Override
-    public void forEach(Consumer<? super E> action) {
-
+        return new SequentialListIterator();
     }
 
     @Override
     public Spliterator<E> spliterator() {
-        return null;
+        throw new UnsupportedOperationException();
+    }
+
+    public ListIterator<E> listIterator(int index) {
+        ensureInBounds(index);
+        return new SequentialListIterator(index);
     }
 
     private void ensureInBounds(int index) {
@@ -169,5 +171,92 @@ public class SequentialArray<E> implements BasicArray<E> {
         // grow array
         Object[] original = elements;
         elements = Arrays.copyOf(original, capacity);
+    }
+
+    private class SequentialListIterator implements ListIterator<E> {
+        private int cursor = 0;
+
+        public SequentialListIterator() {
+
+        }
+
+        public SequentialListIterator(int index) {
+            this.cursor = index;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return cursor < size && cursor > -1;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public E next() {
+            if(cursor > -1 && cursor < size) {
+                return (E)elements[cursor++];
+            }
+            return null;
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            return cursor > 0 && cursor < size + 1;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public E previous() {
+            if(cursor > 0 && cursor < size + 1) {
+                return (E)elements[--cursor];
+            }
+            return null;
+        }
+
+        @Override
+        public int nextIndex() {
+            return cursor;
+        }
+
+        @Override
+        public int previousIndex() {
+            return cursor - 1;
+        }
+
+        @Override
+        public void remove() {
+            if(cursor > 0 && cursor < size + 1) {
+                SequentialArray.this.remove(--cursor);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void forEachRemaining(Consumer<? super E> action) {
+            while (cursor < size) {
+                action.accept((E)elements[cursor++]);
+            }
+        }
+
+        @Override
+        public void set(E e) {
+            if(cursor > 0 && cursor < size + 1) {
+                elements[cursor - 1] = e;
+            }
+        }
+
+        @Override
+        public void add(E e) {
+            if(cursor > -1 && cursor < size + 1) {
+                SequentialArray.this.add(cursor++, e);
+            }
+        }
+
+
+    }
+
+    private static class Test {
+        public static void main(String[] args) {
+            SequentialArray<Integer> sequentialArray = new SequentialArray<>();
+        }
     }
 }

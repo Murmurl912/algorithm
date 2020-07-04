@@ -18,6 +18,6 @@ public interface BasicArray<E> extends Iterable<E> {
 
     public void clear();
 
-    public void set(int index, E element);
+    public E set(int index, E element);
 
 }
