@@ -13,8 +13,45 @@
    通过在节点中记录前后节点的地址来实现逻辑上连续。如同铁链一样，一个一个连接在一起，在存储位置上不连续。
  
 4. 常见线性结构  
-    数组，队列，链表和栈。数组是在序列内存中连续的的一块连续的存储区域。
+    列表，队列，链表和栈。数组是在序列内存中连续的的一块连续的存储区域。
     在数组中，内存通过分页和地址映射（操作系统或JVM抽象）将多个离散的存储块连接成一块连续的地址区域。
     因此在Java中可以申请最大2^31 -1 长度数组。
       
     顺序存储的线性结构可以通过地址来随即访问，然而链式存储的线性结构则不能直接随机访问。
+    
+# 列表
+
+   列表的特点是能够随随机读写。列表允许访问指定位置（称为索引）存储的元素，取出，删除或者插入一个新的元素。  
+   列表的常见操作如下。
+
+1. E get(int index)
+   读取index处的元素。链表o(n)，数组o(1)
+2. add(int index, E element)
+   在指定位置插入一个元素，插入后该元素的索引为输入参数的index。链表o(n)，数组o(n)
+3. set(index, E element)
+   替换指定位置的元素。数组o(1)，链表o(n)
+4. int size()
+   返回列表存储的元素个数。
+5. int forwardSearch(int index, E element)
+   在列表中从指定位置向前搜索元素第一次的位置。
+6. int backwardSearch(int index, E element)
+   在列表中从指定位置开始，向后搜索元素第一次出现位置。  
+7. E delete(int index)
+   删除指定位置的元素。链表o(n)，数组o(n)
+
+其它操作如判断列表是否为空，判断是否存在元素等都可以被上面的操作导出。
+列表的存储结构不同，上面操作的代价也不同。一般来说，采用连续存储结构的读取操作
+耗时要小于采用链式存储的列表。但插入新数据的时候顺序存储需要移动插入后的数组元素。
+而链式存储只需要找到插入的位置。链式存储的是占用空间平均小于有自动扩容的顺序存储列表。  
+
+对于线性存储还是链式存储，在apache.commons4.list.TreeList中给出了:
+http://commons.apache.org/proper/commons-collections/apidocs/org/apache/commons/collections4/list/TreeList.html。
+        
+        
+                  get  add  insert  iterate  remove  
+    TreeList       3    5       1       2       1  
+    ArrayList      1    1      40       1      40  
+    LinkedList  5800    1     350       2     325  
+
+因该主要采用线性存储的列表，顺序表内存复制的代价似乎小于链表寻找索引的代价。
+应该使用Java的ArrayList而不是LinkedList。
