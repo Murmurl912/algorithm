@@ -72,7 +72,6 @@ public class SequentialQueue<E> implements BasicQueue<E> {
 
     @Override
     public void clear() {
-        // todo circularly clear
         while (rear != front) {
             elements[front] = null;
             front = front + 1;
@@ -144,7 +143,7 @@ public class SequentialQueue<E> implements BasicQueue<E> {
                         elements,
                         newFront,
                         moveSize);
-                for(int i = front; i < oldCapacity; i++){
+                for(int i = front; i < newFront; i++){
                     elements[i] = null;
                 }
                 front = newFront;
@@ -155,8 +154,13 @@ public class SequentialQueue<E> implements BasicQueue<E> {
         // this is wrong implementation
         // if newRear is 0
         // which actually should be rear + 1
+        // rear = newRear;
+        // below is a correct implementation
+        newRear = rear + 1;
+        if(newRear >= elements.length) {
+            newRear = 0;
+        }
         rear = newRear;
-
         size++;
     }
 
@@ -171,10 +175,10 @@ public class SequentialQueue<E> implements BasicQueue<E> {
 
     @Override
     public Iterator<E> iterator() {
-        return null;
+        return new QueueIterator();
     }
 
-    private void grow(int miniCapacity) {
+    protected void grow(int miniCapacity) {
         if(miniCapacity < 0) {
             // int overflow
             throw new OutOfMemoryError();
@@ -231,14 +235,15 @@ public class SequentialQueue<E> implements BasicQueue<E> {
 
     private static class Test {
         public static void main(String[] args) {
-            testSequential(100);
+            testTakeAndOfferAndPeek(1000);
+            clearTest(1000);
         }
 
-        private static void testSequential(int maxSize) {
+        static void testTakeAndOfferAndPeek(int size) {
             Random random = new Random(System.currentTimeMillis());
             SequentialQueue<Integer> queue = new SequentialQueue<>();
 
-            int[] inSequence = new int[random.nextInt(maxSize)];
+            int[] inSequence = new int[size];
             int[] outSequence = new int[inSequence.length];
 
             random.setSeed(0);
@@ -253,25 +258,92 @@ public class SequentialQueue<E> implements BasicQueue<E> {
                     flag = true;
                 }
                 if(inIndex < inSequence.length && flag) {
-                    int value = inSequence[inIndex];
-                    System.out.println("Offer Index: " + inIndex++ + ", Value: " + value);
+                    int value = inSequence[inIndex++];
                     queue.offer(value);
-                } else {
-                    if(queue.empty()) {
-                        System.out.println("Error!");
+                    value = queue.peek();
+                    if(value != inSequence[outIndex]) {
+                        System.out.println("Peek test failed");
+                        return;
                     }
-                    int value =  queue.take();
-                    System.out.println("Take Index: " + outIndex + ", Value: " + value);
+                } else {
+                    int value = queue.peek();
+                    if(value != inSequence[outIndex]) {
+                        System.out.println("Peek test failed");
+                        return;
+                    }
+
+                    value =  queue.take();
                     outSequence[outIndex++] = value;
                 }
+
             }
-            System.out.println(Arrays.toString(inSequence));
-            System.out.println(Arrays.toString(outSequence));
+
             if(Arrays.equals(inSequence, outSequence)) {
                 System.out.println("Test success");
             } else {
-                System.out.println("Test failed");
+                System.out.println("Offer and take test failed");
             }
+        }
+
+        static void clearTest(int maxSize) {
+            Random random = new Random();
+            SequentialQueue<Integer> queue = new SequentialQueue<>();
+            int size = random.nextInt(maxSize);
+            random.setSeed(0);
+            for(int i = 0; i < size; i++) {
+                queue.offer(random.nextInt());
+            }
+
+            random.setSeed(0);
+            for(Integer integer : queue) {
+                if(integer != random.nextInt()) {
+                    System.out.println("Test failed");
+                    return;
+                }
+            }
+            queue.clear();
+
+            int[] inSequence = new int[size];
+            int[] outSequence = new int[inSequence.length];
+
+            random.setSeed(0);
+            for(int i = 0; i < inSequence.length; i++) {
+                inSequence[i] = random.nextInt();
+            }
+            int inIndex = 0;
+            int outIndex = 0;
+            while (inIndex < inSequence.length || outIndex < inSequence.length) {
+                boolean flag = random.nextBoolean();
+                if(queue.empty()) {
+                    flag = true;
+                }
+                if(inIndex < inSequence.length && flag) {
+                    int value = inSequence[inIndex++];
+                    queue.offer(value);
+                    value = queue.peek();
+                    if(value != inSequence[outIndex]) {
+                        System.out.println("Peek test failed");
+                        return;
+                    }
+                } else {
+                    int value = queue.peek();
+                    if(value != inSequence[outIndex]) {
+                        System.out.println("Peek test failed");
+                        return;
+                    }
+
+                    value =  queue.take();
+                    outSequence[outIndex++] = value;
+                }
+
+            }
+
+            if(Arrays.equals(inSequence, outSequence)) {
+                System.out.println("Test success");
+            } else {
+                System.out.println("Offer and take test failed");
+            }
+
         }
     }
 }

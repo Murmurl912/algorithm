@@ -262,5 +262,21 @@ public class SequentialArray<E> implements BasicArray<E> {
         public static void main(String[] args) {
             SequentialArray<Integer> sequentialArray = new SequentialArray<>();
         }
+
+        static void testAdd() {
+
+        }
+
+        static void testRemove() {
+
+        }
+
+        static void testSet() {
+
+        }
+
+        static void testClear() {
+
+        }
     }
 }

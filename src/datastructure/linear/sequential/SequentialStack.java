@@ -115,4 +115,10 @@ public class SequentialStack<E> implements BasicStack<E> {
         }
 
     }
+
+    private static class Test {
+        public static void main(String[] args) {
+
+        }
+    }
 }
