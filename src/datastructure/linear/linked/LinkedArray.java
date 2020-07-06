@@ -5,6 +5,8 @@ import datastructure.linear.BasicArray;
 import java.util.*;
 import java.util.function.Consumer;
 
+// todo: implement iterator and unit test
+
 public class LinkedArray<E> implements BasicArray<E> {
 
     protected LinkedNode<E> first;
