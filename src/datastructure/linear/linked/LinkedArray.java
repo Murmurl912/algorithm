@@ -5,7 +5,7 @@ import datastructure.linear.BasicArray;
 import java.util.*;
 import java.util.function.Consumer;
 
-// todo: implement iterator and unit test
+// todo: unit test iterator
 
 public class LinkedArray<E> implements BasicArray<E> {
 
@@ -146,86 +146,119 @@ public class LinkedArray<E> implements BasicArray<E> {
     }
 
     private class LinkedArrayIterator implements ListIterator<E> {
-        private LinkedNode<E> lastReturned;
-        private LinkedNode<E> next;
-        private int nextIndex;
+        private LinkedNode<E> node;
+        private int index;
 
         LinkedArrayIterator(int index) {
-            next = (index == size) ? null : node(index);
-            nextIndex = index;
+            node = (index == size) ? null : node(index);
+            this.index = index;
         }
 
         public boolean hasNext() {
-            return nextIndex < size;
+            return index < size;
         }
 
         public E next() {
             if (!hasNext())
                 throw new NoSuchElementException();
-
-            lastReturned = next;
-            next = next.next;
-            nextIndex++;
-            return lastReturned.data;
+            E data = node.data;
+            node = node.next;
+            index++;
+            return data;
         }
 
         public boolean hasPrevious() {
-            return nextIndex > 0;
+            return index > 0;
         }
 
         public E previous() {
             if (!hasPrevious())
                 throw new NoSuchElementException();
+            if(index == size) {
+                // node at end of the array
+                node = last;
+                index--;
+                return node.data;
+            }
 
-            lastReturned = next = (next == null) ? last : next.previous;
-            nextIndex--;
-            return lastReturned.data;
+
+            E data = node.data;
+            node = node.previous;
+            index--;
+            return data;
         }
 
         public int nextIndex() {
-            return nextIndex;
+            return index;
         }
 
         public int previousIndex() {
-            return nextIndex - 1;
+            return index - 1;
         }
 
         public void remove() {
-            if (lastReturned == null)
+            if(!hasPrevious()) {
                 throw new IllegalStateException();
+            }
 
-            LinkedNode<E> lastNext = lastReturned.next;
-//            unlink(lastReturned);
-            if (next == lastReturned)
-                next = lastNext;
-            else
-                nextIndex--;
-            lastReturned = null;
+            if(node == null) {
+                // delete last node
+                LinkedNode<E> deleteNode = last;
+                last = deleteNode.previous;
+                if(last == null) {
+                    first = null;
+                } else {
+                    last.next = null;
+                }
+            } else {
+                LinkedNode<E> deleteNode = node.previous;
+                LinkedNode<E> previous = deleteNode.previous;
+                LinkedNode<E> next = deleteNode.next;
+                next.previous = previous;
+                if(previous == null) {
+                    // delete first
+                    first = next;
+                } else {
+                    previous.next = next;
+                }
+            }
+
+            index--;
         }
 
         public void set(E e) {
-            if (lastReturned == null)
+            if (!hasPrevious())
                 throw new IllegalStateException();
-            lastReturned.data = e;
+            node.previous.data = e;
         }
 
         public void add(E e) {
-            lastReturned = null;
-            if (next == null) {
-
+            LinkedNode<E> newNode = new LinkedNode<>(null, node, e);
+            if(node == null) {
+                // add last
+                newNode.previous = last;
+                if(newNode.previous == null) {
+                    first = newNode;
+                } else {
+                    last.next = newNode;
+                }
             } else {
-
+                newNode.previous = node.previous;
+                // add first
+                if(newNode.previous == null) {
+                    first = newNode;
+                } else {
+                    newNode.previous.next = newNode;
+                }
             }
-            nextIndex++;
+            index++;
         }
 
         public void forEachRemaining(Consumer<? super E> action) {
-            Objects.requireNonNull(action);
-            while (nextIndex < size) {
-                action.accept(next.data);
-                lastReturned = next;
-                next = next.next;
-                nextIndex++;
+            while (node != null) {
+                action.accept(node.data);
+                node = node.next;
+                index++;
             }
         }
     }
