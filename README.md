@@ -19,12 +19,13 @@
             done
             
         + #### Circular Linked List  
+            done
             
     + ### Stack
         + #### Array Stack  
             done
         + #### Linked Stack       
-        
+            
     + ### Queue 
         + #### Array Queue  
             done
@@ -36,22 +37,18 @@
         
         + #### Linked Deque  
             
+    + ### Tree  
+        + #### Binary Tree  
+        + #### Binary Search Tree  
+        + #### Balanced Binary Tree  
+        + #### AVL Tree  
+        + #### Binary Thread Tree  
+        + #### Huffman Tree  
         
+    + ### Graph  
     
-  + ### Tree
-    + #### Binary Tree
-        + Binary Search Tree
-        + Balance Binary Search Tree
-        + AVL Tree
-        + Binary Thread Tree
-        + Huffman Tree
-        
-  + ### Graph  
+    + ### Hashing
     
-  + ### Hashing
-  
-  + ### Heap
-    + #### Binary Heap
-    
+    + ### Heap    
   
 + ## Algorithm  

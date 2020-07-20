@@ -1,8 +1,7 @@
-package datastructure.linear.playground.linkedlist;
+package datastructure.linear.linked;
 
 import datastructure.linear.BasicArray;
 
-import java.nio.charset.IllegalCharsetNameException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
