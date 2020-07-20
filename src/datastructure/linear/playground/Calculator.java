@@ -5,10 +5,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * a rpn calculator
- * cannot compute expression contain negative value
- * such as: - 9 + 1, 9 + 10 * (- 10 + 2)
+ * a simple rpn based calculator
+ * cannot compute expression contain +number or -number
+ * such as: - 9 + 1, 9 + 10 * (- 10 + 2), +10 * 12, 1 ----- 1
+ * - and + operator contain override
  * need to improve tokenizer
+ * an context free tokenizer cannot
+ * determine - is minus operator or negative operator
+ *
+ * more commonly determine whether - is subtraction mark or negative mark
+ * is the job of syntax analyzer which builds a abstract syntax tree
+ *
+ * using an AST to calculate math expression is beyond
+ * usage of linear data structure
  */
 @Deprecated
 public class Calculator {
@@ -79,9 +88,26 @@ public class Calculator {
         return tokens;
     }
 
+    /**
+     * suppose to determine + and - override
+     * @param tokens list of token
+     * @return parsed token
+     */
+    public List<Token> parse(List<Token> tokens) {
+        Token[] previous = new Token[1];
+
+        tokens.forEach(token -> {
+
+        });
+
+        return tokens;
+    }
+
     public ArrayList<Token> rpn(List<Token> tokens) {
         ArrayList<Token> operands = new ArrayList<>();
         ArrayDeque<Operator> operators = new ArrayDeque<>();
+        Token[] previous = new Token[1];
+
         tokens.forEach(token -> {
             // operator
             if(token instanceof Operator) {
@@ -272,7 +298,7 @@ public class Calculator {
     public static void main(String[] args) {
         Calculator calculator = new Calculator();
         System.out.println("Tokenize: ");
-        ArrayList<Token> tokens = calculator.tokenize("(2 * (9 + 6 / 3 - 5) + 4)");
+        ArrayList<Token> tokens = calculator.tokenize("-(2 * (9 + 6 / 3 - 5) + 4)");
         tokens.forEach(System.out::println);
         System.out.println("RPN: ");
         ArrayList<Token> operands = calculator.rpn(tokens);
