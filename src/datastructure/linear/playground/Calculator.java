@@ -4,6 +4,13 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * a rpn calculator
+ * cannot compute expression contain negative value
+ * such as: - 9 + 1, 9 + 10 * (- 10 + 2)
+ * need to improve tokenizer
+ */
+@Deprecated
 public class Calculator {
 
     public ArrayList<Token> tokenize(String expression) {
@@ -127,26 +134,58 @@ public class Calculator {
         return operands;
     }
 
+    // cannot compute negative operator
+    public double compute(ArrayList<Token> expression) {
+        ArrayDeque<Operand> operands = new ArrayDeque<>();
+        expression.forEach(token -> {
+            if(token instanceof Operand) {
+                operands.push((Operand)token);
+                return;
+            }
+
+            if(token instanceof Operator) {
+                Operator operator = (Operator)token;
+                int operandCount = operator.operands;
+                ArrayList<Operand> parameters = new ArrayList<>();
+                while (operandCount-- > 0) {
+                    parameters.add(0, operands.isEmpty() ? new Operand(0) : operands.pop());
+                }
+                double value = operator.evaluate(parameters.toArray(new Operand[]{}));
+                Operand operand = new Operand(value);
+                operands.push(operand);
+                return;
+            }
+
+            throw new IllegalStateException("Token is not a operand or operator");
+        });
+        if(operands.size() != 1) {
+            throw new IllegalStateException("Expresion is invalid.");
+        }
+        return operands.pop().number.doubleValue();
+    }
+
     public static interface Token {
 
     }
 
     public static enum Operator implements Token{
-        OPERATOR_PLUS("+", 1),
-        OPERATOR_MINUS("-", 1),
-        OPERATOR_MULTIPLICATION("*", 2),
-        OPERATOR_DIVISION("/", 2),
-        OPERATOR_POWER("^", 2),
+        OPERATOR_PLUS("+", 2, 1),
+        OPERATOR_MINUS("-", 2, 1),
+        OPERATOR_MULTIPLICATION("*", 2, 2),
+        OPERATOR_DIVISION("/", 2, 2),
+        OPERATOR_POWER("^", 2, 2),
         // a bracket will change operator priority inside bracket enclosure
-        OPERATOR_LEFT_BRACKET("(", 0), // priority change
-        OPERATOR_RIGHT_BRACKET(")", 0); // priority change
+        OPERATOR_LEFT_BRACKET("(", 0, 0), // priority change
+        OPERATOR_RIGHT_BRACKET(")", 0, 0); // priority change
 
         private final int priority;
         private final String name;
+        private final int operands;
 
-        Operator(String name, int priority) {
+        Operator(String name, int operands, int priority) {
             this.priority = priority;
             this.name = name;
+            this.operands = operands;
         }
 
         @Override
@@ -162,6 +201,31 @@ public class Calculator {
             return name;
         }
 
+        public double evaluate(Operand...operands) {
+            assert operands.length == this.operands : this + " require " + this.operands + " operand(s)";
+            double value = 0;
+            switch (this) {
+                case OPERATOR_PLUS:
+                    value = operands[0].number.doubleValue() + operands[1].number.doubleValue();
+                    break;
+                case OPERATOR_MINUS:
+                    value = operands[0].number.doubleValue() - operands[1].number.doubleValue();
+                    break;
+                case OPERATOR_POWER:
+                    value = Math.pow(operands[0].number.doubleValue(), operands[1].number.doubleValue());
+                    break;
+                case OPERATOR_DIVISION:
+                    value = operands[0].number.doubleValue() / operands[1].number.doubleValue();
+                    break;
+                case OPERATOR_MULTIPLICATION:
+                    value = operands[0].number.doubleValue() * operands[1].number.doubleValue();
+                    break;
+                default:
+                    throw new UnsupportedOperationException(this + " operator is not support.");
+            }
+            return value;
+
+        }
 
     }
 
@@ -213,5 +277,7 @@ public class Calculator {
         System.out.println("RPN: ");
         ArrayList<Token> operands = calculator.rpn(tokens);
         operands.forEach(System.out::println);
+        System.out.println("Evaluate: ");
+        System.out.println(calculator.compute(operands));
     }
 }
