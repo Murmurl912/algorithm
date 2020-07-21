@@ -1,5 +1,6 @@
 package datastructure.linear.playground;
 
+import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -99,7 +100,6 @@ public class Calculator {
         tokens.forEach(token -> {
 
         });
-
         return tokens;
     }
 
