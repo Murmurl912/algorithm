@@ -9,7 +9,7 @@ import java.util.stream.Stream;
  * Once created cannot be change
  */
 public class OneVariablePolynomial implements Polynomial {
-    protected int degree;
+
     protected Node<OneVariableTerm> first;
     protected Node<OneVariableTerm> last;
     protected int size;
@@ -38,7 +38,6 @@ public class OneVariablePolynomial implements Polynomial {
                 .map(this::search) // search inserting position
                 .map(node -> insert(node, context.current, false)) // insert term
                 .map(node -> node.data.degree()) // get degree
-                .map(this::updateDegree) // update degree
                 .close(); // end operation
     }
 
@@ -173,11 +172,6 @@ public class OneVariablePolynomial implements Polynomial {
         size++;
     }
 
-    protected int updateDegree(int degree) {
-        this.degree = Math.max(this.degree, degree);
-        return this.degree;
-    }
-
     protected boolean isTermZero(OneVariableTerm term) {
         Objects.requireNonNull(term);
         return Double.isFinite(term.coefficient());
@@ -185,7 +179,7 @@ public class OneVariablePolynomial implements Polynomial {
 
     @Override
     public int degree() {
-        return degree;
+        return last == null ? 0 : last.data.degree();
     }
 
     @Override
@@ -333,14 +327,44 @@ public class OneVariablePolynomial implements Polynomial {
     }
 
     @Override
-    public OneVariablePolynomial divide(Polynomial polynomial) {
+    public OneVariablePolynomial compose(Polynomial polynomial) {
+        if(!(polynomial instanceof OneVariablePolynomial)) {
+            throw new IllegalArgumentException("polynomial must be one variable polynomial.");
+        }
+        OneVariablePolynomial result = new OneVariablePolynomial();
+        OneVariablePolynomial self = this;
+        OneVariablePolynomial that = (OneVariablePolynomial)polynomial;
+        Node<OneVariableTerm> selfNode = self.first;
+        Node<OneVariableTerm> thatNode = that.first;
+
 
         return null;
     }
 
     @Override
+    public double evaluate(double x) {
+        return 0;
+    }
+
+    @Override
+    public int compareTo(Polynomial o) {
+        return 0;
+    }
+
+    @Override
     public Iterator<Term> iterator() {
         return new PolynomialIterator();
+    }
+
+    // todo implement hash code and equals
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
     }
 
     private class PolynomialIterator implements Iterator<Term> {

@@ -1,6 +1,6 @@
 package datastructure.linear.playground.polynomial;
 
-public interface Polynomial extends Iterable<Term> {
+public interface Polynomial extends Iterable<Term>, Comparable<Polynomial> {
 
     public int degree();
 
@@ -10,6 +10,8 @@ public interface Polynomial extends Iterable<Term> {
 
     public Polynomial multiply(Polynomial polynomial);
 
-    public Polynomial divide(Polynomial polynomial);
+    public Polynomial compose(Polynomial polynomial);
+
+    public double evaluate(double x);
 
 }
