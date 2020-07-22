@@ -1,9 +1,6 @@
 package algorithm.search.dictionary;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * dictionary is not a data structure
@@ -13,7 +10,9 @@ import java.util.Set;
  * such as:
  *  unordered array
  *  ordered array
- *  unordered linked list
+ *  ordered linked list, because normal linked cannot be indexed
+ *      it takes no effect to sort list
+ *      hence binary search cannot apply to sorted linked list
  *  ordered linked list
  *  binary search tree
  *  balanced binary search tree
@@ -55,9 +54,7 @@ public interface Dictionary<Key, Value> {
      * @param key key of key value pair to be removed
      * @return value of key value pair that been removed
      */
-    default public Value remove(Key key) {
-        return put(key, null);
-    }
+    public Value remove(Key key);
 
     /**
      * put a key value pair into dictionary
@@ -96,7 +93,7 @@ public interface Dictionary<Key, Value> {
      * key value pair stored in this dictionary
      * @return an immutable collection of key value pair
      */
-    public Collection<Pair<Key, Value>> entries();
+    public Iterator<Pair<Key, Value>> entries();
 
     /**
      * an immutable from outside package class

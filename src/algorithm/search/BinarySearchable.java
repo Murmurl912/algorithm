@@ -38,7 +38,9 @@ public interface BinarySearchable<Data extends Comparable<Data>> {
     default public int binarySearch(Data data, int low, int high, boolean isAscend) {
         indexCheck(low);
         indexCheck(high);
-
+        if(low > high) {
+            throw new IllegalArgumentException("low must <= high, low: " + low + ", high: " + high);
+        }
         while (low <= high) {
             int middle = middle(data, low, high);
             Data item = access(middle);

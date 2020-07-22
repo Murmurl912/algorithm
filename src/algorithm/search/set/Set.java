@@ -1,5 +1,17 @@
 package algorithm.search.set;
 
+/**
+ * set stores unique item
+ * set can be implemented
+ * with unordered array,
+ *      ordered array
+ *      unordered list
+ *      binary search tree
+ *      balanced binary search tree
+ *      hash table
+ *
+ * @param <E> type of element to be stored
+ */
 public interface Set<E> extends Iterable<E> {
 
     public int size();
