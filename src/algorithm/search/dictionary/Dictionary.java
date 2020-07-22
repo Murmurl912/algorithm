@@ -107,24 +107,24 @@ public interface Dictionary<Key, Value> {
      * @param <Value> value type
      */
     public static class Pair<Key, Value> {
-        private Key key;
-        private Value value;
+        protected Key key;
+        protected Value value;
 
-        Pair(Key key, Value value) {
+        protected Pair(Key key, Value value) {
             this.key = key;
             this.value = value;
         }
 
-        void set(Key key, Value value) {
+        protected void set(Key key, Value value) {
             this.key = key;
             this.value = value;
         }
 
-        void setKey(Key key) {
+        protected void setKey(Key key) {
             this.key = key;
         }
 
-        void setValue(Value value) {
+        protected void setValue(Value value) {
             this.value = value;
         }
 
