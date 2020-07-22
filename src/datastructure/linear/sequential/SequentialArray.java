@@ -260,6 +260,7 @@ public class SequentialArray<E> implements BasicArray<E> {
     }
 
     private static class Test {
+
         public static void main(String[] args) {
             SequentialArray<Integer> sequentialArray = new SequentialArray<>();
         }

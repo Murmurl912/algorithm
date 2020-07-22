@@ -5,21 +5,18 @@ import algorithm.search.RandomAssessable;
 import java.util.*;
 
 /**
- * an unordered implementation of set
- * element stored in set should be immutable
- * or effectively immutable
- * @param <E> type of element to store in this set
+ * todo: improve performance for union, complement and intersection operation between sorted set
+ * an ordered array based set implementation
+ * binary search is used
  */
-public class ArraySet<E>
-        implements Set<E>, RandomAssessable<E, Integer> {
-
+public class SortedArraySet<E extends Comparable<E>> implements Set<E>, RandomAssessable<E, Integer> {
     protected int size;
-    protected Object[] elements;
-    public static final int INITIAL_CAPACITY = 10;
-    public static final int MAXIMUM_CAPACITY = Integer.MAX_VALUE - 8;
+    protected Comparable<?>[] elements;
+    protected final int INITIAL_CAPACITY = 10;
+    protected final int MAXIMUM_CAPACITY = Integer.MAX_VALUE - 8;
 
-    public ArraySet() {
-        elements = new Object[INITIAL_CAPACITY];
+    public SortedArraySet() {
+        elements = new Comparable<?>[INITIAL_CAPACITY];
     }
 
     @Override
@@ -47,15 +44,16 @@ public class ArraySet<E>
 
     @Override
     public boolean put(E element) {
-        Objects.requireNonNull(element);
-        if(indexOf(element, 0, size) != -1) {
-            return false;
+        int index = 0;
+        if(size > 0) { // set not empty search insert position
+            index = binarySearch(element, 0, size - 1);
+            if(index >= 0) { // not found
+                return false;
+            }
+            index = - index - 1;
         }
 
-        if(elements.length == size) {
-            ensureCapacity(size + 1);
-        }
-        elements[size++] = element;
+        put(element, index);
         return true;
     }
 
@@ -64,7 +62,7 @@ public class ArraySet<E>
         if(size == 0) {
             return false;
         }
-        return indexOf(element, 0, size) > -1;
+        return binarySearch(element, 0, size - 1) >= 0;
     }
 
     @Override
@@ -72,8 +70,8 @@ public class ArraySet<E>
         if(size == 0) {
             return false;
         }
-        int index = indexOf(element, 0, size);
-        if(index == -1) {
+        int index = binarySearch(element, 0, size - 1);
+        if(index < 0) {
             return false;
         }
 
@@ -81,6 +79,51 @@ public class ArraySet<E>
         return true;
     }
 
+    @Override
+    public Set<E> union(Set<E> that) {
+        SortedArraySet<E> set = this.copy();
+        for(E e : that) {
+            set.put(e);
+        }
+        return set;
+    }
+
+    @Override
+    public Set<E> intersect(Set<E> that) {
+        SortedArraySet<E> set = new SortedArraySet<>();
+        for(E e : this) {
+            if(that.contains(e)) {
+                // put last
+                set.put(e, set.size);
+            }
+        }
+        return set;
+    }
+
+    @Override
+    public Set<E> complement(Set<E> that) {
+        SortedArraySet<E> set = new SortedArraySet<>();
+        for(E e : this) {
+            if(!that.contains(e)) {
+                // put last
+                set.put(e, set.size);
+            }
+        }
+        return set;
+    }
+
+    @Override
+    public boolean isSubsetOf(Set<E> that) {
+        if(this.size > that.size()) {
+            return false;
+        }
+        for(E e : this) {
+            if(!that.contains(e)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     @Override
     public Iterator<E> iterator() {
@@ -90,84 +133,66 @@ public class ArraySet<E>
     @SuppressWarnings("unchecked")
     @Override
     public E elementAt(Integer integer) {
-        ensureIndexInBounds(integer);
-        return ((E)elements[integer]);
+        if(integer < 0 || integer > size - 1) {
+            throw new IndexOutOfBoundsException(integer);
+        }
+
+        return (E)elements[integer];
     }
 
     @Override
     public Integer indexOf(E e, Integer from, Integer to) {
+        Objects.requireNonNull(e);
         if(size == 0) {
             return -1;
         }
-        ensureIndexInBounds(from);
+
+        if(from < 0 || from > size - 1) {
+            throw new IndexOutOfBoundsException(from);
+        }
+
         if(to < 0 || to > size) {
-            throw new IndexOutOfBoundsException(to);
+            throw new IndexOutOfBoundsException(from);
         }
 
-        for(int i = from; i < to; i++) {
-            if(Objects.equals(e, elements[i])) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    @Override
-    public Set<E> union(Set<E> that) {
-        Set<E> set = this.copy();
-        for(E e : that) {
-            set.put(e);
-        }
-        return set;
-    }
-
-    @Override
-    public Set<E> intersect(Set<E> that) {
-        ArraySet<E> set = new ArraySet<>();
-        for(E thatElement : that) {
-           if(this.contains(thatElement)) {
-               set.putLast(thatElement);
-           }
-        }
-        return set;
-    }
-
-    @Override
-    public Set<E> complement(Set<E> that) {
-        ArraySet<E> set = new ArraySet<>();
-        for(E thisElement : this) {
-            if(that.contains(thisElement)) {
-                continue;
-            }
-            set.putLast(thisElement);
-        }
-        return set;
-    }
-
-    @Override
-    public boolean isSubsetOf(Set<E> that) {
-        if(this.size() > that.size()) {
-            return false;
+        if(from > to) {
+            throw new IllegalArgumentException("from: " + from + " to: " + to);
         }
 
-        for(E thisElement : this) {
-            if(!that.contains(thisElement)) {
-                return false;
-            }
-        }
-
-        return true;
+        return binarySearch(e, from, to - 1);
     }
 
     public void trim() {
         elements = Arrays.copyOf(elements, size);
     }
 
-    protected ArraySet<E> copy() {
-        ArraySet<E> set = new ArraySet<>();
-        set.size = size;
+    private SortedArraySet<E> copy() {
+        SortedArraySet<E> set = new SortedArraySet<>();
         set.elements = Arrays.copyOf(elements, size);
+        set.size = size;
         return set;
+    }
+
+    private void put(E element, int index) {
+        try {
+            if(size == elements.length) {
+                grow(size + 1);
+            }
+
+            int length = size - index;
+
+            System.arraycopy(
+                    elements,
+                    index,
+                    elements,
+                    index + 1,
+                    length);
+            elements[index] = element;
+            size++;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void remove(int index) {
@@ -178,25 +203,34 @@ public class ArraySet<E>
                 elements,
                 index,
                 length);
+
         // garbage collect
-        elements[--size] = null;
+        elements[size - 1] = null;
+        size--;
     }
 
-    private void putLast(E element) {
-        if(size == elements.length) {
-            ensureCapacity(size + 1);
+    @SuppressWarnings("unchecked")
+    private int binarySearch(E element, int low, int high) {
+        if(low > high) {
+            throw new IllegalArgumentException("low: " + low + " high: " + high);
         }
-        elements[size++] = element;
-    }
 
-    private void ensureIndexInBounds(int index) {
-        if(index < 0 || index > size - 1) {
-            throw new IndexOutOfBoundsException(index);
+        while (low <= high) {
+            int middle = (low + high) / 2;
+            E data = (E)elements[middle];
+            int compareResult = element.compareTo(data);
+            if(compareResult == 0) {
+                // element = data
+                return middle;
+            } else if(compareResult > 0) {
+                // element > data
+                low = middle + 1;
+            } else {
+                // element < data
+                high = middle - 1;
+            }
         }
-    }
-
-    private void ensureCapacity(int minCapacity) {
-        grow(minCapacity);
+        return -(low + 1);
     }
 
     private void grow(int miniCapacity) {
@@ -228,7 +262,7 @@ public class ArraySet<E>
         }
 
         // grow array
-        Object[] original = elements;
+        Comparable<?>[] original = elements;
         elements = Arrays.copyOf(original, capacity);
     }
 
@@ -240,13 +274,12 @@ public class ArraySet<E>
             return index < size;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public E next() {
             if(!hasNext()) {
                 throw new NoSuchElementException();
             }
-            return (E)elements[index++];
+            return elementAt(index++);
         }
 
         @Override
@@ -254,42 +287,15 @@ public class ArraySet<E>
             if(index < 1) {
                 throw new NoSuchElementException();
             }
-            ArraySet.this.remove(index);
+            SortedArraySet.this.remove(index);
             index--;
         }
-    }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if(!(o instanceof Set)) {
-            return false;
-        }
-
-        Set<E> set = (Set<E>) o;
-        if(set.size() != size) {
-            return false;
-        }
-
-        return this.isSubsetOf(set);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Objects.hash(size);
-        for(int i = 0; i < size; i++) {
-            result += elements[i].hashCode();
-        }
-        return result;
     }
 
     @Override
     public String toString() {
-        return "ArraySet{" +
+        return "ArraySortedSet{" +
                 "elements=" + Arrays.toString(elements) +
                 '}';
     }
@@ -308,22 +314,24 @@ public class ArraySet<E>
         }
 
         static void randomPutRemoveTest(int iteration) {
-            Set<Integer> set = new ArraySet<>();
+            System.out.println("Random Put Then Remove Test...");
+            Set<Integer> set = new SortedArraySet<>();
             Random random = new Random();
             random.setSeed(0);
 
             int count = 0;
-            System.out.println("Put: ");
             while (count++ < iteration) {
                 int value = random.nextInt(100);
-                System.out.println("Add: " + value + ", " + set.put(value) + ", " + set);
+                set.put(value);
             }
-            System.out.println("Remove: ");
+
+            System.out.println("Set Before Remove: " + set);
             random.setSeed(0);
             while (count-- > 0) {
                 int value = random.nextInt(100);
-                System.out.println("Remove: " + value + ", " + set.remove(value) + ", " + set);
+                set.remove(value);
             }
+            System.out.println("Set After Remove: " + set);
             boolean result = set.isEmpty();
             System.out.println("Put Remove Test Result: " + result);
             if(!result) {
@@ -332,24 +340,23 @@ public class ArraySet<E>
         }
 
         static void randomContainTest(int iteration) {
-            Set<Integer> set = new ArraySet<>();
+            System.out.println("Random Contain Test...");
+            Set<Integer> set = new SortedArraySet<>();
             Random random = new Random();
             random.setSeed(0);
 
             int count = 0;
-            System.out.println("Put: ");
             while (count++ < iteration) {
                 int value = random.nextInt(100);
-                System.out.println("Add: " + value + ", " + set.put(value) + ", " + set);
+                set.put(value);
             }
 
             boolean result = true;
-            System.out.println("Contain: ");
+            System.out.println("Set: " + set);
             random.setSeed(0);
             while (count-- > 0) {
                 int value = random.nextInt(100);
                 result = result && set.contains(value);
-                System.out.println("Contain: " + value + ", " + set.contains(value) + ", " + set);
             }
 
             System.out.println("Contain Test Result: " + result);
@@ -359,15 +366,15 @@ public class ArraySet<E>
         }
 
         static void clearTest(int size) {
-            Set<Integer> set = new ArraySet<>();
+            System.out.println("Clear Set Test...");
+            Set<Integer> set = new SortedArraySet<>();
             Random random = new Random();
             random.setSeed(0);
 
             int count = 0;
-            System.out.println("Put: ");
             while (count++ < size) {
                 int value = random.nextInt(100);
-                System.out.println("Add: " + value + ", " + set.put(value) + ", " + set);
+                set.put(value);
             }
 
             set.clear();
@@ -379,24 +386,24 @@ public class ArraySet<E>
         }
 
         static void unionTest(int sizeA, int sizeB) {
-            Set<Integer> setA = new ArraySet<>();
-            Set<Integer> setB = new ArraySet<>();
+            System.out.println("Set Union Test...");
+            Set<Integer> setA = new SortedArraySet<>();
+            Set<Integer> setB = new SortedArraySet<>();
             Random random = new Random();
             random.setSeed(0);
 
             int count = 0;
-            System.out.println("Put Set A: ");
             while (count++ < sizeA) {
                 int value = random.nextInt(100);
-                System.out.println("Add: " + value + ", " + setA.put(value) + ", " + setA);
+                setA.put(value);
             }
             count = 0;
-            System.out.println("Put Set B: ");
             while (count++ < sizeB) {
                 int value = random.nextInt(100);
-                System.out.println("Add: " + value + ", " + setB.put(value) + ", " + setB);
+                setB.put(value);
             }
-
+            System.out.println("Set A: " + setB);
+            System.out.println("Set B: " + setB);
             Set<Integer> setC = setA.union(setB);
             System.out.println("Union Result: " + setC);
 
@@ -417,26 +424,26 @@ public class ArraySet<E>
         }
 
         static void intersectTest(int sizeA, int sizeB) {
-            Set<Integer> setA = new ArraySet<>();
-            Set<Integer> setB = new ArraySet<>();
+            System.out.println("Set Intersect Test...");
+            Set<Integer> setA = new SortedArraySet<>();
+            Set<Integer> setB = new SortedArraySet<>();
             Random random = new Random();
             random.setSeed(0);
 
             int count = 0;
-            System.out.println("Put Set A: ");
             while (count++ < sizeA) {
                 int value = random.nextInt(100);
-                System.out.println("Add: " + value + ", " + setA.put(value) + ", " + setA);
+                setA.put(value);
             }
+            System.out.println("Set A: " + setA);
             count = 0;
-            System.out.println("Put Set B: ");
             while (count++ < sizeB) {
                 int value = random.nextInt(1000);
-                System.out.println("Add: " + value + ", " + setB.put(value) + ", " + setB);
+                setB.put(value);
             }
+            System.out.println("Set B: " + setB);
 
             Set<Integer> setC = setA.intersect(setB);
-
             boolean flag = true;
             for(Integer integer : setC) {
 
@@ -475,24 +482,24 @@ public class ArraySet<E>
         }
 
         static void complementTest(int sizeA, int sizeB) {
-            Set<Integer> setA = new ArraySet<>();
-            Set<Integer> setB = new ArraySet<>();
+            System.out.println("Set Complement Test...");
+            Set<Integer> setA = new SortedArraySet<>();
+            Set<Integer> setB = new SortedArraySet<>();
             Random random = new Random();
             random.setSeed(0);
 
             int count = 0;
-            System.out.println("Put Set A: ");
             while (count++ < sizeA) {
                 int value = random.nextInt(100);
-                System.out.println("Add: " + value + ", " + setA.put(value) + ", " + setA);
+                setA.put(value);
             }
+            System.out.println("Set A: " + setA);
             count = 0;
-            System.out.println("Put Set B: ");
             while (count++ < sizeB) {
                 int value = random.nextInt(1000);
-                System.out.println("Add: " + value + ", " + setB.put(value) + ", " + setB);
+                setB.put(value);
             }
-
+            System.out.println("Set B: " + setB);
             Set<Integer> setC = setA.complement(setB);
 
             boolean flag = true;
@@ -525,32 +532,32 @@ public class ArraySet<E>
         }
 
         static void subsetTest(int sizeA, int sizeB) {
-            Set<Integer> setA = new ArraySet<>();
-            Set<Integer> setB = new ArraySet<>();
+            System.out.println("Is Subset Test...");
+
+            Set<Integer> setA = new SortedArraySet<>();
+            Set<Integer> setB = new SortedArraySet<>();
             Random random = new Random();
             random.setSeed(0);
 
             int count = 0;
-            System.out.println("Put Set A: ");
             while (count++ < sizeA) {
                 int value = random.nextInt(100);
-                System.out.println("Add: " + value + ", " + setA.put(value) + ", " + setA);
+                setA.put(value);
             }
+            System.out.println("Set A: " + setA);
             count = 0;
-            System.out.println("Put Set B: ");
             while (count++ < sizeB) {
                 int value = random.nextInt(1000);
-                System.out.println("Add: " + value + ", " + setB.put(value) + ", " + setB);
+                setB.put(value);
             }
-
-            boolean result =  !setA.isSubsetOf(setB);
-            System.out.println("Set A: " + setA);
             System.out.println("Set B: " + setB);
+            boolean result =  !setA.isSubsetOf(setB);
             System.out.println("Negative Subset Test: " + result);
 
 
             setB.clear();
             result = result && setB.isSubsetOf(setA);
+            System.out.println("Set B: " + setB);
             System.out.println("Empty Set Test: " + result);
 
             sizeB = (Math.abs((int)(Math.random() * sizeA) + 1) % (sizeA + 1));
@@ -571,4 +578,5 @@ public class ArraySet<E>
 
         }
     }
+
 }
