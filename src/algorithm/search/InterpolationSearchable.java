@@ -5,7 +5,7 @@ package algorithm.search;
  *
  * @param <Data>
  */
-public interface InterpolationSearch<Data extends Comparable<Data>> extends BinarySearchable<Data> {
+public interface InterpolationSearchable<Data extends Comparable<Data>> extends BinarySearchable<Data> {
 
     /**
      * probing position of comparing index

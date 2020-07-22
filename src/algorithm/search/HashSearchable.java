@@ -1,7 +1,14 @@
 package algorithm.search;
 
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Objects;
+import java.util.Set;
 
+/**
+ * using hash table to search data index
+ * @param <Data>
+ */
 public interface HashSearchable<Data> {
 
     public int size();
