@@ -23,10 +23,9 @@ public class SequentialStack<E> implements BasicStack<E> {
 
     @Override
     public void clear() {
-        while (--size > -1) {
-            elements[size] = null;
+        while (size - 1 > -1) {
+            elements[--size] = null;
         }
-        size = 0;
     }
 
     @Override

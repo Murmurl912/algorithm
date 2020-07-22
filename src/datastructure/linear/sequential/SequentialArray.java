@@ -110,7 +110,7 @@ public class SequentialArray<E> implements BasicArray<E> {
     public void clear() {
         for (int i = size; i > 0; i--) {
             elements[i - 1] = null;
-            size--;
+            size = i;
         }
     }
 

@@ -39,6 +39,11 @@ public interface Dictionary<Key, Value> {
     public int size();
 
     /**
+     * test if dictionary is empty
+     * @return true if dictionary is empty
+     */
+    public boolean isEmpty();
+    /**
      * capacity of dictionary
      * @return capacity of dictionary
      */
@@ -86,7 +91,7 @@ public interface Dictionary<Key, Value> {
      * in this dictionary
      * @return an immutable collection of keys in this dictionary
      */
-    public Collection<Key> keys();
+    public Iterator<Key> keys();
 
     /**
      * get an immutable collection of

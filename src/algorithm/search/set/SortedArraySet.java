@@ -38,12 +38,13 @@ public class SortedArraySet<E extends Comparable<E>> implements Set<E>, RandomAs
     public void clear() {
         for (int i = size; i > 0; i--) {
             elements[i - 1] = null;
-            size--;
+            size = i;
         }
     }
 
     @Override
     public boolean put(E element) {
+        Objects.requireNonNull(element);
         int index = 0;
         if(size > 0) { // set not empty search insert position
             index = binarySearch(element, 0, size - 1);
@@ -59,6 +60,7 @@ public class SortedArraySet<E extends Comparable<E>> implements Set<E>, RandomAs
 
     @Override
     public boolean contains(E element) {
+        Objects.requireNonNull(element);
         if(size == 0) {
             return false;
         }
