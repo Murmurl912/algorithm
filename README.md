@@ -52,3 +52,11 @@
     + ### Heap    
   
 + ## Algorithm  
+    + ### Basic Search
+        + #### Sequential Search
+            done
+        + #### Binary Search
+            done
+        + #### Interpolation Search
+            done
+        
