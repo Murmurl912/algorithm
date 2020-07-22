@@ -108,8 +108,9 @@ public class SequentialArray<E> implements BasicArray<E> {
 
     @Override
     public void clear() {
-        while (--size > -1) {
-            elements[size] = null;
+        for (int i = size; i > 0; i--) {
+            elements[i - 1] = null;
+            size--;
         }
     }
 

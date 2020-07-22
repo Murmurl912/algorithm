@@ -26,6 +26,7 @@ public class SequentialStack<E> implements BasicStack<E> {
         while (--size > -1) {
             elements[size] = null;
         }
+        size = 0;
     }
 
     @Override
