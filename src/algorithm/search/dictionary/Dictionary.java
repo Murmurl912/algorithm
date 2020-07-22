@@ -1,6 +1,9 @@
 package algorithm.search.dictionary;
 
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Predicate;
 
 /**
  * dictionary is not a data structure
@@ -30,7 +33,7 @@ import java.util.*;
  * @param <Key> key type
  * @param <Value> value type
  */
-public interface Dictionary<Key, Value> {
+public interface Dictionary<Key, Value> extends Iterable<Dictionary.Pair<Key, Value>> {
 
     /**
      * size of dictionary
@@ -71,6 +74,7 @@ public interface Dictionary<Key, Value> {
      */
     public Value put(Key key, Value value);
 
+    public Value compute(Key key, BiFunction<Key, Value, Value> remap);
     /**
      * get value by associated key
      * @param key key of value that associate with
@@ -147,6 +151,11 @@ public interface Dictionary<Key, Value> {
         @Override
         public int hashCode() {
             return Objects.hash(key);
+        }
+
+        @Override
+        public String toString() {
+            return "<" + key + ", " + value + ">";
         }
     }
 

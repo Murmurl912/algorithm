@@ -2,13 +2,11 @@ package algorithm.search.dictionary;
 
 import algorithm.search.RandomAssessable;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 /**
- * todo: write unit test
  * an unordered array implementation of dictionary
  *
  * @param <Key> type of key
@@ -44,7 +42,8 @@ public class ArrayDictionary<Key, Value> implements Dictionary<Key, Value>, Rand
     public void clear() {
         for(int i = size; i > 0; i--) {
             elements[i - 1] = null;
-            size = i;
+            size = i - 1;
+            System.out.println(size);
         }
     }
 
@@ -67,18 +66,38 @@ public class ArrayDictionary<Key, Value> implements Dictionary<Key, Value>, Rand
     @SuppressWarnings("unchecked")
     @Override
     public Value put(Key key, Value value) {
-        if(size == elements.length) {
-            grow(size + 1);
-        }
-
         int index = indexOf(key);
         if(index < 0) {
-            put(new Pair<>(key, value), index);
+            put(new Pair<>(key, value), size);
             return null;
         }
         Pair<Key, Value> pair = (Pair<Key, Value>) elements[index];
         put(new Pair<>(key, value), index);
         return pair.value;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Value compute(Key key, BiFunction<Key, Value, Value> remapping) {
+        Objects.requireNonNull(key);
+        Objects.requireNonNull(remapping);
+        Value oldValue = null;
+        int index = indexOf(key);
+        if(index > -1) {
+            oldValue = ((Pair<Key, Value>) elements[index]).value;
+        } else {
+            index = size;
+        }
+        Value value = remapping.apply(key, oldValue);
+        if(value != null) {
+            put(new Pair<>(key, value), index);
+        } else { // value == null
+            // delete key
+            if(index < size) {
+                remove(index);
+            }
+        }
+        return value;
     }
 
     @SuppressWarnings("unchecked")
@@ -100,7 +119,7 @@ public class ArrayDictionary<Key, Value> implements Dictionary<Key, Value>, Rand
         if(size == 0) {
             return false;
         }
-        return indexOf(key) > 0;
+        return indexOf(key) > -1;
     }
 
     @Override
@@ -146,6 +165,11 @@ public class ArrayDictionary<Key, Value> implements Dictionary<Key, Value>, Rand
         return -1;
     }
 
+    @Override
+    public Iterator<Pair<Key, Value>> iterator() {
+        return new PairIterator();
+    }
+
     @SuppressWarnings("unchecked")
     private int indexOf(Key key) {
         for (int i = 0; i < size; i++) {
@@ -169,15 +193,11 @@ public class ArrayDictionary<Key, Value> implements Dictionary<Key, Value>, Rand
     }
 
     private void put(Pair<Key, Value> keyValuePair, int index) {
-        int length = size - index;
-        System.arraycopy(
-                elements,
-                index,
-                elements,
-                index + 1,
-                length);
+        if(index == size) {
+            grow(size + 1);
+            size++;
+        }
         elements[index] = keyValuePair;
-        size++;
     }
 
     private void grow(int miniCapacity) {
@@ -272,27 +292,136 @@ public class ArrayDictionary<Key, Value> implements Dictionary<Key, Value>, Rand
     private static class Test {
 
         public static void main(String[] args) {
+//            testFrequencyCounter(100);
+//            testRemove(100);
+//            testClear(100);
+            testContain(100);
+        }
+
+        static void testFrequencyCounter(int iteration) {
+            System.out.println("Frequency Counter Test Case...");
+            Random random = new Random(0);
+            int[] frequencies = new int[20];
+            Dictionary<Integer, Integer> dictionary = new ArrayDictionary<>();
+            int count = 0;
+            while (count++ < iteration) {
+                int key = random.nextInt(20);
+                frequencies[key] += 1;
+                dictionary.compute(key, (k, v) -> {
+                    if(v == null) {
+                        v = 1;
+                    } else {
+                        v += 1;
+                    }
+                    return v;
+                });
+            }
+            System.out.println("Dictionary Frequency: ");
+            dictionary.forEach(System.out::println);
+            System.out.println("Correct Frequency: ");
+            boolean result = true;
+            for (int i = 0; i < frequencies.length; i++) {
+                if(dictionary.get(i) != frequencies[i]) {
+                    result = false;
+                }
+                System.out.println("<" + i + ", " + frequencies[i] + ">");
+            }
+
+            System.out.println("Frequency Counter Test Result: " + result);
+            assert result : "Put Get Test Failed.";
+        }
+
+        static void testRemove(int iteration) {
+            System.out.println("Remove Test Case...");
+            Random random = new Random(0);
+            int[] frequencies = new int[20];
+            Dictionary<Integer, Integer> dictionary = new ArrayDictionary<>();
+            int count = 0;
+            while (count++ < iteration) {
+                int key = random.nextInt(20);
+                frequencies[key] += 1;
+                dictionary.compute(key, (k, v) -> {
+                    if(v == null) {
+                        v = 1;
+                    } else {
+                        v += 1;
+                    }
+                    return v;
+                });
+            }
+
+            for(int i = 1; i < frequencies.length; i += 2) {
+                dictionary.remove(i);
+            }
+            boolean result = true;
+            System.out.println("Correct Frequency: ");
+            for(int i = 0; i < frequencies.length; i += 2) {
+                if(frequencies[i] != dictionary.get(i)) {
+                    result = false;
+                }
+                System.out.println("<" + i + ", " + frequencies[i] + ">");
+          }
+            System.out.println("Dictionary Frequency: ");
+            dictionary.forEach(System.out::println);
+
+            result = result && dictionary.size() == Math.ceil(frequencies.length / 2d);
+            System.out.println("Remove Test Result: " + result);
+            assert result : "Remove Test Failed.";
 
         }
 
-        static void testPut() {
-
+        static void testClear(int iteration) {
+            System.out.println("Clear Test");
+            Random random = new Random(0);
+            Dictionary<Integer, Integer> dictionary = new ArrayDictionary<>();
+            int count = 0;
+            while (count++ < iteration) {
+                int key = random.nextInt(20);
+                dictionary.compute(key, (k, v) -> {
+                    if(v == null) {
+                        v = 1;
+                    } else {
+                        v += 1;
+                    }
+                    return v;
+                });
+            }
+            System.out.println("Dictionary Frequency: ");
+            dictionary.forEach(System.out::println);
+            dictionary.clear();
+            System.out.println("Clear Result: " + dictionary.isEmpty());
+            assert dictionary.isEmpty() : "Put Get Test Failed.";
         }
 
-        static void testGet() {
+        static void testContain(int iteration) {
+            System.out.println("Put Contain Test...");
+            Random random = new Random(0);
+            int[] frequencies = new int[20];
+            Dictionary<Integer, Integer> dictionary = new ArrayDictionary<>();
+            int count = 0;
+            while (count++ < iteration) {
+                int key = random.nextInt(20);
+                frequencies[key] += 1;
+                if(dictionary.contains(key)) {
+                    dictionary.put(key, dictionary.get(key) + 1);
+                } else {
+                    dictionary.put(key, 1);
+                }
+            }
 
-        }
+            System.out.println("Dictionary Frequency: ");
+            dictionary.forEach(System.out::println);
+            System.out.println("Correct Frequency: ");
+            boolean result = true;
+            for (int i = 0; i < frequencies.length; i++) {
+                if(dictionary.get(i) != frequencies[i]) {
+                    result = false;
+                }
+                System.out.println("<" + i + ", " + frequencies[i] + ">");
+            }
 
-        static void testRemove() {
-
-        }
-
-        static void testClear() {
-
-        }
-
-        static void testContain() {
-
+            System.out.println("Put Contain Test Result: " + result);
+            assert result : "Put Contain Test Failed.";
         }
     }
 }
