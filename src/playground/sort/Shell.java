@@ -12,11 +12,11 @@ public class Shell {
             step = 3 * step + 1;
         }
 
-        System.out.println("Array: " + Arrays.toString(array));
+        // System.out.println("Array: " + Arrays.toString(array));
 
         while (step >= 1) {
 
-            System.out.println("Round: " + step);
+            // System.out.println("Round: " + step);
 
             for(int i = step; i < array.length; i++) {
 
@@ -38,7 +38,7 @@ public class Shell {
                     }
                 }
                 array[j] = key;
-                System.out.println("index: " + i + " " + Arrays.toString(array));
+                // System.out.println("index: " + i + " " + Arrays.toString(array));
             }
 
             step = step / 3;

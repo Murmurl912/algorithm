@@ -59,4 +59,12 @@
             done
         + #### Interpolation Search
             done
-        
+
++ ## Util
+    + ### Stop Watch
+        done
+    + ### Benchmark Watch
+        done
+    + ### Linear Regression
+    + ### Polynomial Regression
+    + 
