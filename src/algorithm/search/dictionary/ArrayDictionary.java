@@ -193,8 +193,10 @@ public class ArrayDictionary<Key, Value> implements Dictionary<Key, Value>, Rand
     }
 
     private void put(Pair<Key, Value> keyValuePair, int index) {
-        if(index == size) {
+        if(elements.length == size) {
             grow(size + 1);
+        }
+        if(index == size) {
             size++;
         }
         elements[index] = keyValuePair;

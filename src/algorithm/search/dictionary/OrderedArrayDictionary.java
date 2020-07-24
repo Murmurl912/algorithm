@@ -3,10 +3,8 @@ package algorithm.search.dictionary;
 import algorithm.search.RandomAssessable;
 import com.sun.jdi.Value;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Random;
+import java.security.KeyPair;
+import java.util.*;
 import java.util.function.BiFunction;
 
 public class OrderedArrayDictionary<Key extends Comparable<Key>, Value>
@@ -49,67 +47,181 @@ public class OrderedArrayDictionary<Key extends Comparable<Key>, Value>
 
     @Override
     public Value remove(Key key) {
-        return null;
+        if(size == 0) {
+            return null;
+        }
+        int index = binarySearch(key, 0, size - 1);
+        if(index < 0) {
+            return null;
+        }
+        return remove(index);
     }
 
     @Override
     public Value put(Key key, Value value) {
-        return null;
+        if(size == 0) {
+            put(key, value, 0);
+        }
+        int index = binarySearch(key, 0, size - 1);
+        if(index < 0) {
+            put(key, value, - index -1);
+            return null;
+        } else {
+            return set(value, index);
+        }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Value compute(Key key, BiFunction<Key, Value, Value> remap) {
-        return null;
+        if(size == 0) {
+            Value value = remap.apply(key, null);
+            if(value == null) {
+                return null;
+            }
+            put(key, value, 0);
+            return value;
+        }
+
+        int index = binarySearch(key, 0, size - 1);
+        if(index < 0) {
+            Value value = remap.apply(key, null);
+            if(value == null) {
+                return null;
+            }
+            put(key, value, 0);
+            return value;
+        } else {
+            Pair<Key, Value> pair = (Pair<Key, Value>) elements[index];
+            Value value = remap.apply(key, pair.value);
+            if(value == null) {
+                remove(index);
+            } else {
+                set(value, index);
+            }
+            return value;
+        }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Value get(Key key) {
-        return null;
+        if(size == 0) {
+            return null;
+        }
+
+        int index = binarySearch(key, 0, size - 1);
+        if(index < 0) {
+            return null;
+        }
+        return (Value) elements[index].value;
     }
 
     @Override
     public boolean contains(Key key) {
-        return false;
+        if(size == 0) {
+            return false;
+        }
+
+        return binarySearch(key, 0, size - 1) > 0;
     }
 
     @Override
     public Iterator<Key> keys() {
-        return null;
+        return new KeyIterator();
     }
 
     @Override
     public Iterator<Pair<Key, Value>> entries() {
-        return null;
+        return new PairIterator();
     }
 
     @Override
     public Iterator<Pair<Key, Value>> iterator() {
-        return null;
+        return new PairIterator();
     }
 
     /* methods from random accessible */
+    @SuppressWarnings("unchecked")
     @Override
     public Pair<Key, Value> elementAt(Integer integer) {
-        return null;
+        if(integer < 0 || integer > size - 1) {
+            throw new IndexOutOfBoundsException(integer);
+        }
+        return (Pair<Key, Value>) elements[integer];
     }
 
     @Override
     public Integer indexOf(Pair<Key, Value> keyValuePair, Integer from, Integer to) {
-        return null;
+        if(size == 0) {
+            return -1;
+        }
+        if(from > to) {
+            throw new IllegalArgumentException("from must > to, from: " + from + ", to: " + to);
+        }
+        if(from < 0 || from > size - 1) {
+            throw new IndexOutOfBoundsException("from index out of bounds: " + from);
+        }
+        if(to > size) {
+            throw new IndexOutOfBoundsException("to index out bounds: " + to);
+        }
+        return binarySearch(keyValuePair.key, from, to - 1);
     }
 
     /* private methods */
 
+    @SuppressWarnings("unchecked")
     private Value remove(int index) {
-        return null;
+        Pair<?, ?> pair = elements[index];
+        int moveSize = size - index - 1;
+        System.arraycopy(elements,
+                index + 1,
+                elements,
+                index,
+                moveSize);
+        // gc
+        elements[size--] = null;
+        return (Value) pair.value;
     }
 
+    private void put(Key key, Value value, int index) {
+        if(elements.length == size) {
+            grow(size + 1);
+        }
+
+        int moveSize = size - index;
+        System.arraycopy(elements, index, elements, index + 1, moveSize);
+        elements[index] = new Pair<>(key, value);
+        size++;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Value set(Value value, int index) {
+        Pair<Key, Value> pair = (Pair<Key, Value>) elements[index];
+        elements[index] = new Pair<>(pair.key, value);
+        return pair.value;
+    }
+
+    @SuppressWarnings("unchecked")
     private int binarySearch(Key key, int low, int high) {
-        return -1;
-    }
+        if(low > high) {
+            throw new IllegalArgumentException("low index must > high index. low: " + low + ", high:" + high);
+        }
 
-    private Value put(Key key, Value value, int index) {
-        return null;
+        while (low < high) {
+            int middle = (low + high) / 2;
+            Pair<?, ?> keyValuePair = elements[middle];
+            int compareResult = key.compareTo((Key) keyValuePair.key);
+            if(compareResult > 0) {
+                // search key > middle key
+                low = middle + 1;
+            } else if(compareResult < 0) {
+                high = middle - 1;
+            } else {
+                return middle;
+            }
+        }
+        return -1 - low;
     }
 
     private void grow(int miniCapacity) {
@@ -151,6 +263,63 @@ public class OrderedArrayDictionary<Key extends Comparable<Key>, Value>
         // grow array
         Pair<?, ?>[] original = elements;
         elements = Arrays.copyOf(original, capacity);
+    }
+
+
+    private class KeyIterator implements Iterator<Key> {
+        int index;
+
+        @Override
+        public boolean hasNext() {
+            return index < size;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Key next() {
+            if(!hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            return (Key)elements[index++].key;
+        }
+
+        @Override
+        public void remove() {
+            if(size < 1) {
+                throw new NoSuchElementException();
+            }
+
+            OrderedArrayDictionary.this.remove(index--);
+        }
+    }
+
+    private class PairIterator implements Iterator<Pair<Key, Value>> {
+        int index;
+
+        @Override
+        public boolean hasNext() {
+            return index < size;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Pair<Key, Value> next() {
+            if(!hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            return (Pair<Key, Value>) elements[index++];
+        }
+
+        @Override
+        public void remove() {
+            if(size < 1) {
+                throw new NoSuchElementException();
+            }
+
+            OrderedArrayDictionary.this.remove(index--);
+        }
     }
 
 
