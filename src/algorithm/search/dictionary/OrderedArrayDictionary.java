@@ -89,7 +89,7 @@ public class OrderedArrayDictionary<Key extends Comparable<Key>, Value>
             if(value == null) {
                 return null;
             }
-            put(key, value, 0);
+            put(key, value, - index - 1);
             return value;
         } else {
             Pair<Key, Value> pair = (Pair<Key, Value>) elements[index];
@@ -208,7 +208,7 @@ public class OrderedArrayDictionary<Key extends Comparable<Key>, Value>
             throw new IllegalArgumentException("low index must > high index. low: " + low + ", high:" + high);
         }
 
-        while (low < high) {
+        while (low <= high) {
             int middle = (low + high) / 2;
             Pair<?, ?> keyValuePair = elements[middle];
             int compareResult = key.compareTo((Key) keyValuePair.key);
@@ -322,6 +322,140 @@ public class OrderedArrayDictionary<Key extends Comparable<Key>, Value>
         }
     }
 
+    private static class Test {
 
+        public static void main(String[] args) {
+            testFrequencyCounter(1000);
+            testRemove(1000);
+            testClear(1000);
+            testContain(1000);
+        }
+
+        static void testFrequencyCounter(int iteration) {
+            System.out.println("Frequency Counter Test Case...");
+            Random random = new Random(0);
+            int[] frequencies = new int[20];
+            Dictionary<Integer, Integer> dictionary = new OrderedArrayDictionary<>();
+            int count = 0;
+            while (count++ < iteration) {
+                int key = random.nextInt(20);
+                frequencies[key] += 1;
+                dictionary.compute(key, (k, v) -> {
+                    if(v == null) {
+                        v = 1;
+                    } else {
+                        v += 1;
+                    }
+                    return v;
+                });
+            }
+            System.out.println("Dictionary Frequency: ");
+            dictionary.forEach(System.out::println);
+            System.out.println("Correct Frequency: ");
+            boolean result = true;
+            for (int i = 0; i < frequencies.length; i++) {
+                if(dictionary.get(i) != frequencies[i]) {
+                    result = false;
+                }
+                System.out.println("<" + i + ", " + frequencies[i] + ">");
+            }
+
+            System.out.println("Frequency Counter Test Result: " + result);
+            assert result : "Put Get Test Failed.";
+        }
+
+        static void testRemove(int iteration) {
+            System.out.println("Remove Test Case...");
+            Random random = new Random(0);
+            int[] frequencies = new int[20];
+            Dictionary<Integer, Integer> dictionary = new OrderedArrayDictionary<>();
+            int count = 0;
+            while (count++ < iteration) {
+                int key = random.nextInt(20);
+                frequencies[key] += 1;
+                dictionary.compute(key, (k, v) -> {
+                    if(v == null) {
+                        v = 1;
+                    } else {
+                        v += 1;
+                    }
+                    return v;
+                });
+            }
+
+            for(int i = 1; i < frequencies.length; i += 2) {
+                dictionary.remove(i);
+            }
+            boolean result = true;
+            System.out.println("Correct Frequency: ");
+            for(int i = 0; i < frequencies.length; i += 2) {
+                if(frequencies[i] != dictionary.get(i)) {
+                    result = false;
+                }
+                System.out.println("<" + i + ", " + frequencies[i] + ">");
+            }
+            System.out.println("Dictionary Frequency: ");
+            dictionary.forEach(System.out::println);
+
+            result = result && dictionary.size() == Math.ceil(frequencies.length / 2d);
+            System.out.println("Remove Test Result: " + result);
+            assert result : "Remove Test Failed.";
+
+        }
+
+        static void testClear(int iteration) {
+            System.out.println("Clear Test");
+            Random random = new Random(0);
+            Dictionary<Integer, Integer> dictionary = new OrderedArrayDictionary<>();
+            int count = 0;
+            while (count++ < iteration) {
+                int key = random.nextInt(20);
+                dictionary.compute(key, (k, v) -> {
+                    if(v == null) {
+                        v = 1;
+                    } else {
+                        v += 1;
+                    }
+                    return v;
+                });
+            }
+            System.out.println("Dictionary Frequency: ");
+            dictionary.forEach(System.out::println);
+            dictionary.clear();
+            System.out.println("Clear Result: " + dictionary.isEmpty());
+            assert dictionary.isEmpty() : "Put Get Test Failed.";
+        }
+
+        static void testContain(int iteration) {
+            System.out.println("Put Contain Test...");
+            Random random = new Random(0);
+            int[] frequencies = new int[20];
+            Dictionary<Integer, Integer> dictionary = new ArrayDictionary<>();
+            int count = 0;
+            while (count++ < iteration) {
+                int key = random.nextInt(20);
+                frequencies[key] += 1;
+                if(dictionary.contains(key)) {
+                    dictionary.put(key, dictionary.get(key) + 1);
+                } else {
+                    dictionary.put(key, 1);
+                }
+            }
+
+            System.out.println("Dictionary Frequency: ");
+            dictionary.forEach(System.out::println);
+            System.out.println("Correct Frequency: ");
+            boolean result = true;
+            for (int i = 0; i < frequencies.length; i++) {
+                if(dictionary.get(i) != frequencies[i]) {
+                    result = false;
+                }
+                System.out.println("<" + i + ", " + frequencies[i] + ">");
+            }
+
+            System.out.println("Put Contain Test Result: " + result);
+            assert result : "Put Contain Test Failed.";
+        }
+    }
 
 }
