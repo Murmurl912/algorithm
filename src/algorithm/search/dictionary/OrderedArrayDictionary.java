@@ -286,11 +286,11 @@ public class OrderedArrayDictionary<Key extends Comparable<Key>, Value>
 
         @Override
         public void remove() {
-            if(size < 1) {
+            if(index < 1) {
                 throw new NoSuchElementException();
             }
 
-            OrderedArrayDictionary.this.remove(index--);
+            OrderedArrayDictionary.this.remove(--index);
         }
     }
 
@@ -314,11 +314,11 @@ public class OrderedArrayDictionary<Key extends Comparable<Key>, Value>
 
         @Override
         public void remove() {
-            if(size < 1) {
+            if(index < 1) {
                 throw new NoSuchElementException();
             }
 
-            OrderedArrayDictionary.this.remove(index--);
+            OrderedArrayDictionary.this.remove(--index);
         }
     }
 

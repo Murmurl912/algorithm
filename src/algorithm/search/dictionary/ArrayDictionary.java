@@ -255,11 +255,11 @@ public class ArrayDictionary<Key, Value> implements Dictionary<Key, Value>, Rand
 
         @Override
         public void remove() {
-            if(size < 1) {
+            if(index < 1) {
                 throw new NoSuchElementException();
             }
 
-            ArrayDictionary.this.remove(index--);
+            ArrayDictionary.this.remove(--index);
         }
     }
 
@@ -283,11 +283,11 @@ public class ArrayDictionary<Key, Value> implements Dictionary<Key, Value>, Rand
 
         @Override
         public void remove() {
-            if(size < 1) {
+            if(index < 1) {
                 throw new NoSuchElementException();
             }
 
-            ArrayDictionary.this.remove(index--);
+            ArrayDictionary.this.remove(--index);
         }
     }
 

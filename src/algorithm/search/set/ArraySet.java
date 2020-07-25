@@ -254,8 +254,7 @@ public class ArraySet<E>
             if(index < 1) {
                 throw new NoSuchElementException();
             }
-            ArraySet.this.remove(index);
-            index--;
+            ArraySet.this.remove(--index);
         }
     }
 

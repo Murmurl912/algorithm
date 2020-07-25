@@ -289,8 +289,7 @@ public class SortedArraySet<E extends Comparable<E>> implements Set<E>, RandomAs
             if(index < 1) {
                 throw new NoSuchElementException();
             }
-            SortedArraySet.this.remove(index);
-            index--;
+            SortedArraySet.this.remove(--index);
         }
 
     }
