@@ -5,11 +5,10 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class ImmutablePreorderIterator<E> implements Iterator<BinaryTreeNode<E>> {
-    protected Deque<BinaryTreeNode<E>> stack;
-    protected BinaryTreeNode<E> root;
-
-    public ImmutablePreorderIterator(BinaryTreeNode<E> root) {
+public class ImmutablePreorderIterator<E, T> implements Iterator<BinaryTree.BinaryNode<E, T>> {
+    protected Deque<BinaryTree.BinaryNode<E, T>> stack;
+    protected BinaryTree.BinaryNode<E, T> root;
+    public ImmutablePreorderIterator(BinaryTree.BinaryNode<E, T> root) {
         this.root = root;
         stack = new ArrayDeque<>();
         if(root != null) {
@@ -23,12 +22,12 @@ public class ImmutablePreorderIterator<E> implements Iterator<BinaryTreeNode<E>>
     }
 
     @Override
-    public BinaryTreeNode<E> next() {
+    public BinaryTree.BinaryNode<E, T> next() {
         if(stack.isEmpty()) {
             throw new NoSuchElementException();
         }
 
-        BinaryTreeNode<E> node = stack.peek();
+        BinaryTree.BinaryNode<E, T> node = stack.peek();
 
         // push next node to be traveled
         if(node.hasLeft()) {
@@ -47,7 +46,7 @@ public class ImmutablePreorderIterator<E> implements Iterator<BinaryTreeNode<E>>
         if(node.hasRight()) {
             stack.push(node.right());
         }
-        stack.push(node.right());
+
         return node;
     }
 }
