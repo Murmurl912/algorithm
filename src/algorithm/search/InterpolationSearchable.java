@@ -16,7 +16,7 @@ public interface InterpolationSearchable<Data extends Comparable<Data>> extends 
      */
     @Override
     default int middle(Data data, int low, int high) {
-        double ratio = distance(data, access(high));
+        double ratio = distance(data, access(high)) / distance(access(low), access(high));
         return (int)(ratio * (high - low)) + low;
     }
 

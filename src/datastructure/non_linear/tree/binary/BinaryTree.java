@@ -42,17 +42,17 @@ public interface BinaryTree<E, T> {
     }
 
     default public Iterator<BinaryNode<E, T>> inorder() {
-        return null;
+        return new InOrderIterator<>(root());
     }
 
     default public Iterator<BinaryNode<E, T>> levelorder() {
-        return null;
+        return new LevelOrderIterator<>(root());
     }
 
     private void iae() {
         throw new IllegalArgumentException();
     }
-
+    
     public class BinaryNode<E, T> {
 
         protected BinaryNode<E, T> parent;
@@ -123,11 +123,11 @@ public interface BinaryTree<E, T> {
         }
     }
 
-    public class PreOrderIterator<E, T> implements Iterator<BinaryNode<E, T>> {
-        protected Deque<BinaryNode<E, T>> stack;
+    public class PrimitivePreOrderIterator<E, T> implements Iterator<BinaryNode<E, T>> {
+        protected Deque<BinaryNode<E, T>> stack;  // keep track right left child
         protected BinaryNode<E, T> root;
 
-        public PreOrderIterator(BinaryNode<E, T> root) {
+        public PrimitivePreOrderIterator(BinaryNode<E, T> root) {
             this.root = root;
             stack = new ArrayDeque<>();
             if(root != null) {
@@ -167,15 +167,15 @@ public interface BinaryTree<E, T> {
         }
     }
 
-    public class PreOrderCommonIterator<E, T> implements Iterator<BinaryNode<E, T>> {
-        protected Deque<BinaryNode<E, T>> stack;
+    public class PreOrderIterator<E, T> implements Iterator<BinaryNode<E, T>> {
+        protected Deque<BinaryNode<E, T>> stack; // keep track every root of left branches
         protected BinaryNode<E, T> root;
         protected BinaryTree.BinaryNode<E, T> current;
 
         protected BinaryNode<E, T> computeCurrent;
         protected Deque<BinaryNode<E, T>> computeStack;
 
-        public PreOrderCommonIterator(BinaryNode<E, T> root) {
+        public PreOrderIterator(BinaryNode<E, T> root) {
             this.root = root;
             this.stack = new ArrayDeque<>();
             this.computeStack = new ArrayDeque<>();
@@ -304,5 +304,36 @@ public interface BinaryTree<E, T> {
             }
         }
 
+    }
+
+    public class LevelOrderIterator<E, T> implements Iterator<BinaryNode<E, T>> {
+        protected BinaryNode<E, T> root;
+        protected Deque<BinaryNode<E, T>> queue;
+
+        public LevelOrderIterator(BinaryNode<E, T> root) {
+            queue = new ArrayDeque<>();
+            this.root = root;
+            queue.push(root);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return !queue.isEmpty();
+        }
+
+        @Override
+        public BinaryNode<E, T> next() {
+            if(!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            BinaryNode<E, T> node = queue.remove();
+            if(node.hasLeft()) {
+                queue.add(node.left);
+            }
+            if(node.hasRight()) {
+                queue.add(node.right);
+            }
+            return node;
+        }
     }
 }

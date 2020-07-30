@@ -47,8 +47,8 @@ public class StopWatch {
     }
 
     @SuppressWarnings("unchecked")
-    synchronized public Map<Integer, Long> records() {
-        return (Map<Integer, Long>) records.clone();
+    synchronized public Map<Record, Long> records() {
+        return (Map<Record, Long>) records.clone();
     }
 
     synchronized public void clear() {
