@@ -1,4 +1,4 @@
-package playground.sort;
+package algorithm.sort;
 
 public class Quick3Way {
     private static <T extends Comparable<T>> void sort(T[] array, int low, int high) {

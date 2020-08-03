@@ -3,6 +3,7 @@
     <words>
       <w>levelorder</w>
       <w>postorder</w>
+      <w>rebalance</w>
     </words>
   </dictionary>
 </component>

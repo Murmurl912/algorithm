@@ -1,21 +1,29 @@
-package playground.sort;
+package algorithm.sort;
 
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class MergeBU  implements Sort {
+public class Merge implements Sort {
 
+    /**
+     * 将问题分解为若干个小的问题
+     * @param array
+     * @param comparator
+     * @param <T>
+     */
     public static <T> void sort(T[] array, Comparator<T> comparator) {
-        for(int size = 1; size < array.length; size = size + size) {
-            for(int low = 0; low < array.length - size; low += size + size) {
-                merge(array,
-                        low,
-                        low + size - 1,
-                        Math.min(low + size + size - 1, array.length - 1),
-                        comparator);
-            }
+        sort(array, 0, array.length - 1, comparator);
+    }
+
+    public static <T> void sort(T[] array, int low, int high, Comparator<T> comparator) {
+        if(high <= low) {
+            return;
         }
 
+        int mid = low + (high - low) / 2;
+        sort(array, low, mid, comparator);
+        sort(array, mid, high, comparator);
+        merge(array, low, mid, high, comparator);
     }
 
     public static <T> void merge(T[] array,
@@ -23,7 +31,7 @@ public class MergeBU  implements Sort {
                                  int middle,
                                  int high,
                                  Comparator<T> comparator) {
-        // playground.sort array[low...mid] and array[middle+1...high]
+        // algorithm.sort array[low...mid] and array[middle+1...high]
         // then merge two array
 
         int i = low;
@@ -41,4 +49,5 @@ public class MergeBU  implements Sort {
             }
         }
     }
+
 }

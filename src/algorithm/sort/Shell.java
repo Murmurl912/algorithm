@@ -1,4 +1,4 @@
-package playground.sort;
+package algorithm.sort;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -20,7 +20,7 @@ public class Shell {
 
             for(int i = step; i < array.length; i++) {
 
-                // playground.sort array[step + k] array[2 * step + k] ....
+                // algorithm.sort array[step + k] array[2 * step + k] ....
                 // where k = i % step
 
                 T key = array[i];

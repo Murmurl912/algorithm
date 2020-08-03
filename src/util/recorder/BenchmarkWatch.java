@@ -3,8 +3,7 @@ package util.recorder;
 import org.knowm.xchart.QuickChart;
 import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.XYChart;
-import playground.sort.Insertion;
-import playground.sort.Shell;
+import algorithm.sort.Insertion;
 
 import java.util.*;
 import java.util.function.BiFunction;

@@ -1,4 +1,4 @@
-package playground.sort;
+package algorithm.sort;
 
 public class Quick {
 
@@ -17,9 +17,9 @@ public class Quick {
         }
 
         int j = partition(array, low, high);
-        // playground.sort lower part of array
+        // algorithm.sort lower part of array
         sort(array, low, j - 1);
-        // playground.sort higher part of array
+        // algorithm.sort higher part of array
         sort(array, j + 1, high);
     }
 

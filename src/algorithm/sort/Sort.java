@@ -1,4 +1,4 @@
-package playground.sort;
+package algorithm.sort;
 
 import java.util.Comparator;
 import java.util.Random;
