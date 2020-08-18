@@ -1,4 +1,4 @@
-package datastructure.non_linear.tree;
+package datastructure.non_linear.tree.binary;
 
 public interface BinarySearchTree<Key, Value> {
 

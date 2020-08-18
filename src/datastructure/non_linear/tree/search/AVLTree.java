@@ -1,6 +1,6 @@
 package datastructure.non_linear.tree.search;
 
-import datastructure.non_linear.tree.BinarySearchTree;
+import datastructure.non_linear.tree.binary.BinarySearchTree;
 
 import java.util.*;
 
